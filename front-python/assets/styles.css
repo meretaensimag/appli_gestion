@@ -1,0 +1,60 @@
+/* style.css */
+
+/* Centre la page */
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;  /* Utilisation de 100vh pour centrer verticalement */
+    margin: 0;
+   
+}
+
+.navbar {
+    background-color: #333; /* Couleur de fond de la barre de navigation */
+    overflow: hidden;
+}
+
+/* Style pour les liens de navigation */
+.navbar a {
+    float: left;
+    display: block;
+    color: white; /* Couleur du texte des liens */
+    text-align: center;
+    padding: 14px 20px; /* Espacement entre les liens */
+    text-decoration: none; /* Supprimer le soulignement des liens */
+}
+
+/* Style pour les liens de navigation au survol */
+.navbar a:hover {
+    background-color: #ddd; /* Couleur de fond au survol */
+    color: black; /* Changement de couleur du texte au survol */
+}
+
+/* Style pour le titre */
+h1 {
+    color: white;
+    font-family: Arial, sans-serif;
+    font-size: 8em; /* Augmente la taille du titre */
+    text-align: center;
+    
+}
+
+
+/* Style pour la description */
+.description {
+    color: bisque;
+    font-style: italic;
+    font-size: 8em; /* Augmente la taille de la description */
+    text-align: center;
+    
+}
+
+body {
+    background-image: url("./project-portfolio-know-the-value-marquee.jpg");
+    background-size: cover;
+    background-position: center;
+}
+
+
+/* Ajoutez d'autres styles selon vos besoins */
