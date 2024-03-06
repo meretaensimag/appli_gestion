@@ -1,0 +1,32 @@
+/* style.css */
+
+/* Centre la page */
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;  /* Utilisation de 100vh pour centrer verticalement */
+    margin: 0;
+}
+
+/* Style pour le titre */
+h1 {
+    color: #333;
+    font-family: Arial, sans-serif;
+    font-size: 2.5em; /* Augmente la taille du titre */
+}
+
+/* Style pour la description */
+.description {
+    font-style: italic;
+    font-size: 1.2em; /* Augmente la taille de la description */
+}
+
+body {
+    background-image: url("./project-portfolio-know-the-value-marquee.jpg");
+    background-size: cover;
+    background-position: center;
+}
+
+
+/* Ajoutez d'autres styles selon vos besoins */
