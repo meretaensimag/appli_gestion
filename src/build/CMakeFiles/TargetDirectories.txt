@@ -1,0 +1,4 @@
+/user/8/marecp/Gestion-Produit-structure/appli_gestion/src/build/CMakeFiles/rebuild_cache.dir
+/user/8/marecp/Gestion-Produit-structure/appli_gestion/src/build/CMakeFiles/edit_cache.dir
+/user/8/marecp/Gestion-Produit-structure/appli_gestion/src/build/CMakeFiles/hedging_portfolio.dir
+/user/8/marecp/Gestion-Produit-structure/appli_gestion/src/build/CMakeFiles/fx_hedging.dir
