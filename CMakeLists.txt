@@ -37,6 +37,7 @@ add_executable(hedging_portfolio
         json_reader.cpp
         hedging_portfolio.cpp
         Asset.cpp
+        
         call_currency.cpp
         call_quanto.cpp
         RiskyAsset.hpp
