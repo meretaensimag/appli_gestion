@@ -1,0 +1,49 @@
+Code,RIC,Nom,Pays,Monnaie
+ASX200,.AXJO,Australia ASX 200 Index,Australie,AUD
+BOVESPA,.BVSP,Sao Paulo SE Bovespa Index,Brésil,BRL
+CAC40,.FCHI,CAC 40,France,EUR
+DAX,.GDAXI,Deutsche Boerse DAX Index,Allemagne,EUR
+DOWJONES,.DJI,Dow Jones Industrial,USA,USD
+EUROSTOXX50,.STOXX50E,Euro STOXX 50 index,Zone Euro,EUR
+FTSE100,.FTSE,FTSE 100 Index,Grande Bretagne,GBP
+HANGSENG,.HSI,Hang Seng Index,Hong-Kong,HKD
+JSE,.JALSH,Johannesburg SE Index,Afrique du Sud,ZAR
+KOSPI50,.KS50,Korea SE KOSPI 50 Index,Corée du Sud,KRW
+MIB,.FTMIB,FTSE Milano Index,Italie,EUR
+NASDAQ100,.NDX,NASDAQ 100 Index,USA,USD
+NIKKEI,.N225,NIKKEI 225 Index,Japon,JPY
+OBX,.OBX,Oslo SE Equity Index,Norvège,NOK
+SENSEX,.BSESN,Bombay SE Sensex Index,Inde,INR
+SMI,.SSMI,Swiss Market Index,Suisse,CHF
+SP500,.SPX,S&P 500 Index,USA,USD
+TOPIX,.TOPX,TOPIX stock price Index,Japon,JPY
+TSX300,.GSPTSE,Toronto 300 Index,Canada,CAD
+,,,,
+Taux de change,,,,
+XAUD,1 AUD en EUR,Australie,,
+XBRL,1 BRL en EUR,Brésil,,
+XCAD,1 CAD en EUR,Canada,,
+XCHF,1 CHF en EUR,Suisse,,
+XGBP,1 GBP en EUR,Grande Bretagne,,
+XHKD,1 HKD en EUR,Hong-Kong,,
+XINR,1 INR en EUR,Inde,,
+XJPY,1 JPY en EUR,Japon,,
+XKRW,1 KRW en EUR,Corée du Sud,,
+XNOK,1 NOK en EUR,Norvège,,
+XUSD,1 USD en EUR,USA,,
+XZAR,1 ZAR IN EUR,Afrique du Sud,,
+,,,,
+Taux d'intérêt,RIC,,,
+RAUD,AUD3MD=,,,
+RBRL,BRPRE3M=BVMF,,,
+RCAD,CAD3MD=,,,
+RCHF,CHF3MD=,,,
+REUR,EUR3MD=,,,
+RGBP,GBP3MD=,,,
+RHKD,HKD3MD=,,,
+RINR,INR3MD=,,,
+RJPY,JPY3MD=,,,
+RKRW,KIKRW3MD=,,,
+RNOK,NOK3MD=,,,
+RUSD,USD3MD=,,,
+RZAR,ZAR3MD=,,,
