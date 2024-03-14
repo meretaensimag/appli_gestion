@@ -79,3 +79,9 @@ void MonteCarlo::priceAndDelta(PnlMat *pastData, int currentEvalDate, double &co
     }
     pnl_mat_free(&simulatedPath);
 }
+
+MonteCarlo::~MonteCarlo(){
+    pnl_rng_free(&rng_);
+    delete(option_);
+    delete(model_);
+}

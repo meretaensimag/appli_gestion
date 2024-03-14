@@ -1,6 +1,11 @@
 cmake_minimum_required(VERSION 3.5.1)
 project(FXHedging CXX)
 
+# Définir la politique CMP0148
+if(POLICY CMP0148)
+    cmake_policy(SET CMP0148 NEW)
+endif()
+
 # Release or Debug
 if (NOT CMAKE_BUILD_TYPE)
     message(STATUS "Setting build type to 'Debug' as none was specified.")
@@ -15,42 +20,37 @@ if(${CMAKE_BUILD_TYPE} STREQUAL "Release")
     add_definitions(-DPNL_RANGE_CHECK_OFF)
 endif()
 
-# Add pybind11
-# Spécifier le chemin vers les en-têtes Python d'Anaconda
-include_directories("/home/pyves/anaconda3/include/python3.11")
-
-find_package(pybind11 REQUIRED)
+# Find pybind11
+find_package(pybind11 CONFIG REQUIRED)
 
 # Find nlohmann_json to parse json files
 find_package(nlohmann_json REQUIRED)
 
-# Add pybind11::embed to target_link_libraries
-set(fxhedging_hdrs  json_reader.hpp)
-add_library(fx_hedging json_reader.cpp ${fxhedging_hdrs})
+# Headers and sources
+set(fxhedging_hdrs json_reader.hpp
+        ChoreliaOption.cpp
+        python_bindings.cpp)
+add_library(fx_hedging json_reader.cpp ${fxhedging_hdrs}
+        ChoreliaOption.cpp
+        python_bindings.cpp)
 target_link_libraries(fx_hedging PRIVATE ${PNL_LIBRARIES} nlohmann_json::nlohmann_json pybind11::embed)
 
 add_executable(hedging_portfolio
         json_reader.cpp
         hedging_portfolio.cpp
         Asset.cpp
-        call_currency.cpp
-        call_quanto.cpp
         RiskyAsset.hpp
         Currency.cpp
-        foreign_asian.cpp
-        foreign_perf_basket.cpp
         GlobalModel.cpp
         JsonParser.cpp
         MonteCarlo.cpp
-        quanto_exchange.cpp
         TimeGrid.cpp
-        Utils.cpp
         RiskyAsset.cpp
         FixedTimesOracle.cpp
         Position.cpp
         Portfolio.cpp
-        parsing.cpp
+        ChoreliaOption.cpp
         python_bindings.cpp
 )
-target_link_libraries(hedging_portfolio PRIVATE ${PNL_LIBRARIES} nlohmann_json::nlohmann_json)
+target_link_libraries(hedging_portfolio PRIVATE ${PNL_LIBRARIES} nlohmann_json::nlohmann_json pybind11::embed)
 pnl_add_postbuild(hedging_portfolio)

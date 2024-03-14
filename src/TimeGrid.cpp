@@ -3,7 +3,7 @@
 TimeGrid::TimeGrid(nlohmann::json &jsonParams){
     maturity_ = jsonParams.at("Option").at("MaturityInDays").get<int>();
     std::string label = jsonParams.at("Option").at("FixingDatesInDays").at("Type").get<std::string>();
-    std::string label2 = jsonParams.at("PortfolioRebalancingOracleDescription").at("Type").get<std::string>();
+    //std::string label2 = jsonParams.at("PortfolioRebalancingOracleDescription").at("Type").get<std::string>();
 
 
     if (label == "Grid") {
@@ -18,9 +18,9 @@ TimeGrid::TimeGrid(nlohmann::json &jsonParams){
         }
     }
 
-    if (label2 == "Grid") {
-        rebalancingDates_ = jsonParams.at("PortfolioRebalancingOracleDescription").at("DatesInDays").get<std::vector<int>>();
-    }
+//    if (label2 == "Grid") {
+//        rebalancingDates_ = jsonParams.at("PortfolioRebalancingOracleDescription").at("DatesInDays").get<std::vector<int>>();
+//    }
     
     nbTimeSteps_ = dateList_.size();
 }
