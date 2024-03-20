@@ -3,6 +3,7 @@ from dash import dcc, html, Input, Output
 import pandas as pd
 import plotly.graph_objs as go
 from datetime import datetime
+import PortfolioHandler as ph
 
 # Définir les feuilles de style externes
 external_stylesheets = ['https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css', './assets/styles.css']
@@ -13,6 +14,7 @@ app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 # Charger les données depuis le fichier CSV
 df = pd.read_csv('../data/ClosePrice.csv')  # Assurez-vous de remplacer "votre_fichier.csv" par le chemin de votre fichier CSV
 
+
 # Convertir les colonnes de dates en objets datetime
 df['Date'] = pd.to_datetime(df['Date'])
 
@@ -20,7 +22,7 @@ df['Date'] = pd.to_datetime(df['Date'])
 indices = ['EUROSTOXX50', 'FTSE100', 'MIB', 'NIKKEI', 'SENSEX']
 
 # Définir la mise en page de la gestion de portefeuille
-def gestion_portefeuille_layout():
+def gestion_accueil_layout():
     return html.Div(children=[
         navbar_layout(),
         html.Div(children=[
@@ -97,9 +99,9 @@ def accueil_layout():
 # Définir la barre de navigation commune
 def navbar_layout():
     return html.Nav(className='navbar navbar-expand-lg navbar-light bg-light', children=[
-            html.A('Accueil', href='#', className='navbar-brand'),
-            html.A('Gestion de Portefeuille', href='#', className='navbar-brand'),
-            html.A('Contact', href='#', className='navbar-brand'),
+            html.A('Accueil', href='/accueil', className='navbar-brand'),
+            html.A('Gestion de Portefeuille', href='/gestion', className='navbar-brand'),
+            html.A('Contact', href='', className='navbar-brand'),
         ], style={'marginBottom': 0, 'marginTop': 0, 'paddingBottom': 0, 'paddingTop': 0})
 
 # Définir la mise en page de l'application
@@ -112,8 +114,10 @@ app.layout = html.Div([
 @app.callback(Output('page-content', 'children'),
               [Input('url', 'pathname')])
 def display_page(pathname):
-    if pathname == '/gestion_portefeuille':
-        return gestion_portefeuille_layout()
+    if pathname == '/gestion':
+        return ph.gestion_portefeuille_layout()
+    if pathname == '/accueil':
+        return gestion_accueil_layout()
     else:
         return accueil_layout()
 
