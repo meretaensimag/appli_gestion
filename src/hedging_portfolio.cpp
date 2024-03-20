@@ -1,9 +1,9 @@
 #include "JsonParser.hpp"
 #include "MonteCarlo.hpp"
-#include "Utils.hpp"
+#include "Option.hpp"
 #include <iostream>
 #include "fstream"
-#include "FixedTimesOracle.hpp"
+//#include "FixedTimesOracle.hpp"
 #include "Portfolio.hpp"
 
 PnlMat* fillPast(PnlMat* hedgingPast, PnlVect* newSpot, int time, TimeGrid* timeGrid)
@@ -57,8 +57,7 @@ int main(int argc, char *argv[]) {
         double dom = parser.parseDom(currencies);
        
         auto* timegrid = new TimeGrid(parser.j);
-
-        Option* opt = outil->createOption(optionType, assetCurrencyMapping,foreignInterestRates,timegrid, dom, strike_);
+        Option* opt = new ChoreliaOption(assetCurrencyMapping,foreignInterestRates,timegrid, dom, referentialAmount_);
 
         double fdStep_;
         int nbSamples_;
@@ -77,9 +76,9 @@ int main(int argc, char *argv[]) {
 
         int period; 
 
-        parser.j.at("PortfolioRebalancingOracleDescription").at("Period").get_to(period);
+        //parser.j.at("PortfolioRebalancingOracleDescription").at("Period").get_to(period);
 
-        FixedTimesOracle* fixedTimesOracle = new FixedTimesOracle(timegrid, period);
+        //FixedTimesOracle* fixedTimesOracle = new FixedTimesOracle(timegrid, period);
 
         PnlMat* marketData = pnl_mat_create_from_file(argv[2]);
         marketData = parser.parsePast(marketData, timegrid, assetCurrencyMapping, foreignInterestRates);
@@ -117,11 +116,11 @@ int main(int argc, char *argv[]) {
             currentCashValue = CashValue*exp(riskFreeRate * capTime/(double)252);
             portfolio = currentCashValue + pnl_vect_scalar_prod(initDeltas, vectPrices);
             oldDate = i; 
-        if (fixedTimesOracle->rebalancingDate(i)){
-            currentCashValue = portfolio - pnl_vect_scalar_prod(deltas, vectPrices);
-            Position position = Position(i, price, priceStdDev, deltas, deltasStdDev, portfolio);
-            hedgingPortfolio.positions.push_back(position);
-        }
+//        if (fixedTimesOracle->rebalancingDate(i)){
+//            currentCashValue = portfolio - pnl_vect_scalar_prod(deltas, vectPrices);
+//            Position position = Position(i, price, priceStdDev, deltas, deltasStdDev, portfolio);
+//            hedgingPortfolio.positions.push_back(position);
+//        }
         pnl_vect_free(&vectPrices);
         CashValue = currentCashValue;
         initDeltas = deltas;
