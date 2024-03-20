@@ -218,6 +218,7 @@ _assets = _load_assets()
 _currencies = _load_currencies()
 
 _generic_test_parameters = {
+    IsRebalancing: False,
     MathDate: None,
     DomesticCurrencyId:"EUR",
     Currencies: _currencies,

@@ -1,5 +1,6 @@
 Type = "Type"
 MathDate = "MathDate"
+IsRebalancing = "IsRebalancing"
 DomesticInterestRate = "DomesticInterestRate"
 DomesticCurrencyId = "DomesticCurrencyId"
 Id = "Id"
