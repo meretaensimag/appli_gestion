@@ -8,8 +8,7 @@ from sys import stderr
 from datetime import datetime, timedelta
 
 # Ou définissez le chemin de manière explicite
-data_path = "appli_gestion"
-data_path = os.path.join(data_path, "data")
+data_path = r"C:\projet_gestion\appli_gestion\data"
 
 
 # DATA FROM INFO FILE
@@ -111,7 +110,6 @@ desired_order = ['EUROSTOXX50', 'MIB', 'FTSE100', 'NIKKEI', 'SENSEX', 'XGBP', 'X
 
 # Réordonner les colonnes du DataFrame 'df'
 reordered_df = daily_spots[desired_order]
-reordered_df.to_csv("/user/4/.base/mereta/home/3A/appli_gestion/pricJson/DataManager/output_price.csv", index=False, header=False)
 
 arithmetic_daily_rentas = pd.concat([close_ret, xfor_ret], axis=1)
 log_daily_rentas = np.log(arithmetic_daily_rentas + 1)
@@ -121,6 +119,7 @@ log_daily_rentas = np.log(arithmetic_daily_rentas + 1)
 nb_daily_dates = len(daily_spots.index)
 _daily_dates_mapper = dict(zip(daily_spots.index, range(nb_daily_dates)))
 _reverse_dates_mapper = list(daily_spots.index)
+
 
 
 def daily_dates_mapper(string_date : str) -> int:
