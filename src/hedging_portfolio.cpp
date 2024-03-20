@@ -42,7 +42,12 @@ int main(int argc, char *argv[]) {
         std::vector<int> assetCurrencyMapping;
         std::tie(assets, assetCurrencyMapping) = parser.parseAssets(currencies);
 
+        char bool_write = *argv[4];
+        bool Towrite = false;
 
+        if (bool_write == '1') {
+            Towrite = true;
+        }
         Utils* outil = nullptr;
        
         std::string optionType = parser.parseOptionType();
@@ -122,16 +127,25 @@ int main(int argc, char *argv[]) {
         initDeltas = deltas;
         price = 0.0;
     }
-
+        if (Towrite){
+            nlohmann::json jsonPortfolio = hedgingPortfolio.positions;
+            std::ofstream ifout(argv[3], std::ios_base::out);
+            if (!ifout.is_open()) {
+            std::cout << "Unable to open file " << argv[3] << std::endl;
+            std::exit(1);
+            }
+            ifout << jsonPortfolio.dump(4);
+            ifout.close();
+        }
         nlohmann::json jsonPortfolio = hedgingPortfolio.positions;
-        std::ofstream ifout(argv[3], std::ios_base::out);
+        std::ofstream ifout(argv[5], std::ios_base::out);
         if (!ifout.is_open()) {
-        std::cout << "Unable to open file " << argv[3] << std::endl;
+        std::cout << "Unable to open file " << argv[5] << std::endl;
         std::exit(1);
         }
         ifout << jsonPortfolio.dump(4);
         ifout.close();
-
+        
         pnl_vect_free(&initDeltas);
         pnl_vect_free(&deltasStdDev);
         pnl_vect_free(&initSpots);
