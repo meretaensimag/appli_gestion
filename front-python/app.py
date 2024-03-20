@@ -117,7 +117,7 @@ def display_page(pathname):
     if pathname == '/gestion':
         return ph.gestion_portefeuille_layout()
     if pathname == '/accueil':
-        return 
+        return gestion_accueil_layout()
     else:
         return accueil_layout()
 
