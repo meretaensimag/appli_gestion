@@ -1,11 +1,12 @@
 #include "Option.hpp"
-
+#include <iostream>
+#include "fstream"
 
 ChoreliaOption :: ChoreliaOption(std::vector<int> assetCurrencyMapping,
-                                           std::vector<double> foreignInterestRates,
-                                           TimeGrid *timeGrid,
-                                           double domesticInterestRate,
-                                           double referential_amount) {
+                                 std::vector<double> foreignInterestRates,
+                                 TimeGrid *timeGrid,
+                                 double domesticInterestRate,
+                                 double referential_amount) {
     this->assetCurrencyMapping_ = std::move(assetCurrencyMapping);
     this->foreignInterestRates_ = std::move(foreignInterestRates);
     this->domesticInterestRate_ = domesticInterestRate;
@@ -48,7 +49,6 @@ double ChoreliaOption :: payoff(const PnlMat *path) {
     double final_perf = 1.0; // Cumul de la performance annuelle
     double payoff = 0.;
     double dividend = 0.0;   // Dividende à payer
-
     for (int i = 1; i < path->m; ++i) {
         double annual_perf = calculate_average_rate(path, i);
         final_perf *= (1 + annual_perf);
@@ -57,8 +57,18 @@ double ChoreliaOption :: payoff(const PnlMat *path) {
         if (i < path->m - 1) {
             std::vector<double> rates(5);
             for (int j = 0; j < 5; ++j) {
-                double spot_at_0 = pnl_mat_get(path, 0, j);
-                double spot_at_t = pnl_mat_get(path, i, j);
+                double spot_at_0;
+                double spot_at_t;
+                //*exp(foreignInterestRates_[i]*t0)/(double)pnl_mat_get(path,0 , (int)assetCurrencyMapping_.size()+i)
+                if(assetCurrencyMapping_[j]==0){
+                    spot_at_0 = pnl_mat_get(path, 0, j);
+                    spot_at_t = pnl_mat_get(path, i, j);
+                }
+                else{
+                    spot_at_0 = pnl_mat_get(path, 0, j)*exp(foreignInterestRates_[i]*timeGrid_->dateList_[0]/(double)252)/(double)pnl_mat_get(path,0 , (int)assetCurrencyMapping_.size()+assetCurrencyMapping_[j]-1);
+                    spot_at_t = pnl_mat_get(path, i, j)*exp(foreignInterestRates_[i]*timeGrid_->dateList_[i]/(double)252)/(double)pnl_mat_get(path,i , (int)assetCurrencyMapping_.size()+assetCurrencyMapping_[j]-1);
+                }
+
                 rates[j] = (spot_at_t - spot_at_0) / spot_at_0;
             }
             std::nth_element(rates.begin(), rates.begin() + 2, rates.end(), std::greater<>());
@@ -75,7 +85,7 @@ de 25% de cette performance finale (appliquée à la valeur liquidative de réf�
         else{
             dividend = referential_amount_ * (1 + 0.25*final_perf); // 25% de la performance finale
         }
-        payoff += dividend * std::exp(domesticInterestRate_ *(timeGrid_->maturity_ -timeGrid_->dateList_[i]));
+        payoff += dividend * std::exp(domesticInterestRate_ *(timeGrid_->maturity_ -timeGrid_->dateList_[i])/(double)252);
     }
     return payoff;
 }

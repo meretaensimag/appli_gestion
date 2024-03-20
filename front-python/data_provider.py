@@ -59,11 +59,12 @@ def conv_dates(option):
     const_dates = option[FixingDatesInDays][DatesInDays]
     option[FixingDatesInDays][DatesInDays] = [daily_dates_mapper(date) for date in const_dates]
 
-def provide_parametre_tester(int_date, option):
+def provide_parametre_tester(int_date, option, is_rebalancing):
     conv_dates(option)
     parametre_tester = get_test_parameters()
     parametre_tester[MathDate] = int_date
     parametre_tester[Option] = option
+    parametre_tester[IsRebalancing] = is_rebalancing
 
     update_past(int_date, parametre_tester)
     update_interest_rates(taux_interet.iloc[int_date].to_dict(), parametre_tester)
@@ -72,11 +73,13 @@ def provide_parametre_tester(int_date, option):
     verify_parametre_tester(parametre_tester)
     return parametre_tester
 
-def provide_parametre_tester_from_saved_option(int_date, option_num): 
-    return provide_parametre_tester(int_date, get_preload_option_description(option_num))
+def provide_parametre_tester_from_saved_option(int_date, option_num,is_rebalancing): 
+    return provide_parametre_tester(int_date, get_preload_option_description(option_num),is_rebalancing)
 
 # Chemin du répertoire actuel
 current_dir = os.path.abspath(os.getcwd())
+
+data_dir = os.path.join(current_dir, "data")
 
 # Chemin du fichier de sortie JSON
 output_json_path = os.path.join(current_dir, "output.json")
@@ -89,14 +92,17 @@ date = datetime(2004, 4, 1)
 date = daily_dates_mapper(date.strftime('%d-%m-%Y'))
 
 option_number = 1
+
+#boolean pour savoir si on rebalance ou non
+is_rebalancing = True
 # Création du paramètre testeur
-parametre_tester = provide_parametre_tester_from_saved_option(date, option_number)
+parametre_tester = provide_parametre_tester_from_saved_option(date, option_number, is_rebalancing)
 
 # Création du DataFrame de la matrice past
-past_dataframe = create_past_dataframe(date, parametre_tester,option_number)
+#past_dataframe = create_past_dataframe(date, parametre_tester,option_number)
 
 # Écriture du DataFrame dans le fichier CSV
-past_dataframe.to_csv(output_csv_path, index=False)
+#past_dataframe.to_csv(output_csv_path, index=False)
 
 # Écriture du paramètre testeur dans le fichier JSON
 with open(output_json_path, 'w') as json_file:
