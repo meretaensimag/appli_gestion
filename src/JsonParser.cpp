@@ -11,6 +11,8 @@ JsonParser::JsonParser(const std::string& filePath) {
     file >> j;
     j.at("CovarianceMatrix").get_to(Correlation);
     computeCorMatrix();
+    pnl_mat_print(Correlation);
+
 }
 
 double JsonParser::parseDom(std::vector<Currency> currencies){
@@ -19,19 +21,29 @@ double JsonParser::parseDom(std::vector<Currency> currencies){
 
 void JsonParser::computeCorMatrix(){
     PnlVect* vol = pnl_vect_create(Correlation->m);
-    for (int i=0; i < Correlation->m; i++)
-        LET(vol, i) = sqrt(MGET(Correlation, i, i));
+    for (int i=0; i < Correlation->m; i++){
+        pnl_vect_set(vol, i,sqrt(pnl_mat_get(Correlation,i,i)));
+    }
+        
 
     for (int i=0; i < Correlation->m; i++){
         for (int k=0; k < Correlation->n; k++){
-            MLET(Correlation, i, k) /= (GET(vol, i) * GET(vol, k));
+
+            pnl_mat_set(Correlation, i, k,pnl_mat_get(Correlation,i,k)/(pnl_vect_get(vol,i)*pnl_vect_get(vol,i)));
         }
     }
-
+    pnl_vect_print(vol);
     pnl_mat_chol(Correlation);
-    for (int i=0; i < Correlation->m; i++)
-        for (int k=0; j < Correlation->n; k++)
-            MLET(Correlation, i, k) *= GET(vol, i);
+    pnl_mat_print(Correlation);
+    
+
+    for (int l=0; l < Correlation->m; l++){
+        for (int z=0; z < Correlation->n; z++){
+            std::cout << "coucou" << std::endl;
+            pnl_mat_set(Correlation, l, z,pnl_mat_get(Correlation,l,z)*pnl_vect_get(vol,l));
+        }
+    }    
+
 }
 
 std::pair<std::vector<Currency>, std::vector<double>> JsonParser::parseCurrencies() {

@@ -74,12 +74,12 @@ int main(int argc, char *argv[]) {
     //PnlMat* marketData = pnl_mat_create_from_file(argv[2]);
     //marketData = parser.parsePast(marketData, timegrid, assetCurrencyMapping, foreignInterestRates);
     PnlMat* marketData;
-    pnl_mat_print(marketData);
+    //pnl_mat_print(marketData);
     parser.j.at("Past").get_to(marketData);
     parser.parsePast(marketData, timegrid , assetCurrencyMapping, foreignInterestRates);
-    std::cout << "dans main " << std::endl;
+    //std::cout << "dans main " << std::endl;
 
-    pnl_mat_print(marketData);
+    //pnl_mat_print(marketData);
     double price = 0.0;
     double priceStdDev = 0.0;
     int size = marketData->n;
@@ -90,7 +90,7 @@ int main(int argc, char *argv[]) {
     double initPriceStdDev = 0.0;
     PnlVect* initSpots = pnl_vect_create(size);
     //pnl_mat_get_row(initSpots, marketData, 0);
-    pnl_mat_print(marketData);
+    //pnl_mat_print(marketData);
     //PnlMat* initPastData = fillPast(hedgingPast, initSpots, 0, timegrid);
     hedgingPortfolio.monteCarlo.priceAndDelta(marketData, parser.j.at("MathDate").get<int>(), initialPrice, initPriceStdDev, initDeltas, deltasStdDev);
     double portfolio = initialPrice;
