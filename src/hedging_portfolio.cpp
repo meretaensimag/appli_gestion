@@ -92,11 +92,20 @@ int main(int argc, char *argv[]) {
     //pnl_mat_get_row(initSpots, marketData, 0);
     //pnl_mat_print(marketData);
     //PnlMat* initPastData = fillPast(hedgingPast, initSpots, 0, timegrid);
-    hedgingPortfolio.monteCarlo.priceAndDelta(marketData, parser.j.at("MathDate").get<int>(), initialPrice, initPriceStdDev, initDeltas, deltasStdDev);
+    double MathDate =  parser.j.at("MathDate").get<int>();
+    hedgingPortfolio.monteCarlo.priceAndDelta(marketData, MathDate, initialPrice, initPriceStdDev, initDeltas, deltasStdDev);
     double portfolio = initialPrice;
 
-    Position position = Position(0, initialPrice, initPriceStdDev, initDeltas, deltasStdDev, portfolio);
+    Position position = Position(MathDate, initialPrice, initPriceStdDev, initDeltas, deltasStdDev, portfolio);
     hedgingPortfolio.positions.push_back(position);
+
+    double Dom_riskfree  = initialPrice - pnl_vect_scalar_prod(initDeltas,initSpots);
+    // std::cout << Dom_riskfree << std::endl;
+    // std::cout << initialPrice << std::endl;
+    // std::cout << pnl_vect_scalar_prod(initDeltas,initSpots) << std::endl;
+
+
+    
 
     nlohmann::json jsonPortfolio = hedgingPortfolio.positions;
     std::ofstream ifout(argv[3], std::ios_base::out);
