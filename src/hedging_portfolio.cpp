@@ -67,12 +67,7 @@ int main(int argc, char *argv[]) {
 
     int period;
 
-    //parser.j.at("PortfolioRebalancingOracleDescription").at("Period").get_to(period);
-
-    //FixedTimesOracle* fixedTimesOracle = new FixedTimesOracle(timegrid, period);
-
-    //PnlMat* marketData = pnl_mat_create_from_file(argv[2]);
-    //marketData = parser.parsePast(marketData, timegrid, assetCurrencyMapping, foreignInterestRates);
+    
     PnlMat* marketData;
     //pnl_mat_print(marketData);
     parser.j.at("Past").get_to(marketData);
@@ -97,7 +92,11 @@ int main(int argc, char *argv[]) {
     double portfolio = initialPrice;
 
     Position position = Position(MathDate, initialPrice, initPriceStdDev, initDeltas, deltasStdDev, portfolio);
+    
     hedgingPortfolio.positions.push_back(position);
+
+    //Position position2 = Position( MathDate + 1, initialPrice, initPriceStdDev, initDeltas, deltasStdDev, portfolio);
+    //hedgingPortfolio.positions.push_back(position2);
 
     double Dom_riskfree  = initialPrice - pnl_vect_scalar_prod(initDeltas,initSpots);
     // std::cout << Dom_riskfree << std::endl;
@@ -108,14 +107,14 @@ int main(int argc, char *argv[]) {
     
 
     nlohmann::json jsonPortfolio = hedgingPortfolio.positions;
-    std::ofstream ifout(argv[3], std::ios_base::out);
+    std::ofstream ifout(argv[2], std::ios_base::out);
     if (!ifout.is_open()) {
-        std::cout << "Unable to open file " << argv[3] << std::endl;
+        std::cout << "Unable to open file " << argv[2] << std::endl;
         std::exit(1);
     }
     ifout << jsonPortfolio.dump(4);
     ifout.close();
-
+    std::cout << "Writting of new position done" << argv[2] << std::endl;
     pnl_vect_free(&initDeltas);
     pnl_vect_free(&deltasStdDev);
     pnl_vect_free(&initSpots);
