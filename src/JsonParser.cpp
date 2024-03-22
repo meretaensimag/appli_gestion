@@ -11,7 +11,6 @@ JsonParser::JsonParser(const std::string& filePath) {
     file >> j;
     j.at("CovarianceMatrix").get_to(Correlation);
     computeCorMatrix();
-    pnl_mat_print(Correlation);
 
 }
 
@@ -32,9 +31,7 @@ void JsonParser::computeCorMatrix(){
             pnl_mat_set(Correlation, i, k,pnl_mat_get(Correlation,i,k)/(pnl_vect_get(vol,i)*pnl_vect_get(vol,i)));
         }
     }
-    pnl_vect_print(vol);
     pnl_mat_chol(Correlation);
-    pnl_mat_print(Correlation);
     
 
     for (int l=0; l < Correlation->m; l++){
