@@ -76,34 +76,24 @@ def provide_parametre_tester(int_date, option, is_rebalancing):
 def provide_parametre_tester_from_saved_option(int_date, option_num,is_rebalancing): 
     return provide_parametre_tester(int_date, get_preload_option_description(option_num),is_rebalancing)
 
-# Chemin du répertoire actuel
-current_dir = os.path.abspath(os.getcwd())
+def generate_output_json(filepath):
+    # Chemin du répertoire actuel
 
-data_dir = os.path.join(current_dir, "data")
+    # Chemin du fichier de sortie JSON
+    output_json_path = filepath
 
-# Chemin du fichier de sortie JSON
-output_json_path = os.path.join(current_dir, "output.json")
+    # Date
+    date = datetime(2001, 5, 3)
+    date = daily_dates_mapper(date.strftime('%d-%m-%Y'))
 
-# Chemin du fichier de sortie CSV
-output_csv_path = os.path.join(current_dir, "output.csv")
+    option_number = 1
 
-# Date
-date = datetime(2004, 4, 1)
-date = daily_dates_mapper(date.strftime('%d-%m-%Y'))
+    # boolean pour savoir si on rebalance ou non
+    is_rebalancing = True
+    # Création du paramètre testeur
+    parametre_tester = provide_parametre_tester_from_saved_option(date, option_number, is_rebalancing)
 
-option_number = 1
+    # Écriture du paramètre testeur dans le fichier JSON
+    with open(output_json_path, 'w') as json_file:
+        json.dump(parametre_tester, json_file, indent=4)
 
-#boolean pour savoir si on rebalance ou non
-is_rebalancing = True
-# Création du paramètre testeur
-parametre_tester = provide_parametre_tester_from_saved_option(date, option_number, is_rebalancing)
-
-# Création du DataFrame de la matrice past
-#past_dataframe = create_past_dataframe(date, parametre_tester,option_number)
-
-# Écriture du DataFrame dans le fichier CSV
-#past_dataframe.to_csv(output_csv_path, index=False)
-
-# Écriture du paramètre testeur dans le fichier JSON
-with open(output_json_path, 'w') as json_file:
-    json.dump(parametre_tester, json_file, indent=4)

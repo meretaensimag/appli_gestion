@@ -26,7 +26,7 @@ REUR, RGBP, RJPY, RINR = "REUR", "RGBP", "RJPY", "RINR"
 XGBP, XJPY, XINR = "XGBP", "XJPY", "XINR"
 
 DefaultNumberOfDaysInOneYear = 252
-DefaultNbSample = 50_000
+DefaultNbSample = 10_000
 DefaultFdSteps = 0.1
 
 DefaultReferentialAmount = 1000
