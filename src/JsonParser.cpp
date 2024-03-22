@@ -39,7 +39,6 @@ void JsonParser::computeCorMatrix(){
 
     for (int l=0; l < Correlation->m; l++){
         for (int z=0; z < Correlation->n; z++){
-            std::cout << "coucou" << std::endl;
             pnl_mat_set(Correlation, l, z,pnl_mat_get(Correlation,l,z)*pnl_vect_get(vol,l));
         }
     }    

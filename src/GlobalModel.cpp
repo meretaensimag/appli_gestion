@@ -2,7 +2,7 @@
 #include "pnl/pnl_matrix.h"
 #include "pnl/pnl_random.h"
 using namespace std;
-
+#include <iostream>
 
 vector<RiskyAsset> GlobalModel::createRiskyVector(vector<Currency> currencies, vector<Asset> assets){
     vector<RiskyAsset> riskyVector;
@@ -77,11 +77,28 @@ void GlobalModel ::stepSimulation(PnlVect *current_spot, double dt, int size, Pn
     double prevValue;
     double currValue;
     for (int d = 0; d < size; d++) {
+        
         vol_ = riskyAssets_.at(d).volatilityVector_;
+        
         prevValue = GET(current_spot, d);
         double random_term = pnl_vect_scalar_prod(vol_, G);
+        
         currValue = prevValue * exp((riskyAssets_.at(d ).drift_ - pnl_vect_scalar_prod(vol_, vol_)*0.5)* dt + sqrt(dt) * random_term);
         pnl_vect_set(current_spot, d, currValue);
+        // std::cout << "exponentielle" << std::endl;
+        // std::cout << exp((riskyAssets_.at(d ).drift_ - pnl_vect_scalar_prod(vol_, vol_)*0.5)* dt + sqrt(dt) * random_term) << std::endl;
+        // std::cout << "(riskyAssets_.at(d ).drift_ - pnl_vect_scalar_prod(vol_, vol_)*0.5)* dt + sqrt(dt) * random_term " << std::endl;
+        // std::cout << (riskyAssets_.at(d ).drift_ - pnl_vect_scalar_prod(vol_, vol_)*0.5)* dt + sqrt(dt) * random_term << std::endl;
+        // std::cout << "dt " << std::endl;
+        // std::cout << dt << std::endl;
+        // std::cout << "riskyAssets_.at(d ).drift_*dt " << std::endl;
+        // std::cout << riskyAssets_.at(d ).drift_*dt << std::endl;
+        // std::cout << "pnl_vect_scalar_prod(vol_, vol_)*0.5*dt " << std::endl;
+        // std::cout << pnl_vect_scalar_prod(vol_, vol_)*0.5*dt << std::endl;
+        // std::cout << "sqrt(dt) * random_term" << std::endl;
+        // std::cout << sqrt(dt) * random_term << std::endl;
+        // std::cout << "random term" << std::endl;
+        // std::cout << random_term << std::endl;
     }
 }
 
