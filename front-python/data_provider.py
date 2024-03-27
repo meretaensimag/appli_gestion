@@ -192,9 +192,9 @@ def get_classic_dividend_rate(date, option_number):
         S1 = current_spots[asset_code]
         rate = (S1 - S0 )/ S0
         rates.append(adjust_rate(rate))
-        rates.sort(reverse=True)  # Tri décroissant pour que les meilleures performances soient au début
-        if rates[2] > 0:  # Vérifie si la troisième meilleure performance est positive
-            divid_rate = 25 * rates[2]
+    rates.sort(reverse=True)  # Tri décroissant pour que les meilleures performances soient au début
+    if rates[2] > 0:  # Vérifie si la troisième meilleure performance est positive
+        divid_rate = 25 * rates[2]
 
     return divid_rate
 
