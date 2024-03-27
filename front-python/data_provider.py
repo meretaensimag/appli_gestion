@@ -144,12 +144,35 @@ def get_portfolio_value(compos, int_date):
     return np.dot(all_prices, compos)
 
 
-def get_modified_rate(x):
+def adjust_rate(x):
     if x < -0.15:
         return -0.15
     else:
         return x
 
+    
+# Calcule la moyenne des taux de rendement après exclusion du meilleur et du pire
+
+def calculate_average_rate(date,option_number):
+    rates = []
+    first_date = get_saved_option_dates(option_number)[0]
+    first_int_date = daily_dates_mapper(first_date)
+    current_int_date = daily_dates_mapper(date)
+    spots_at_tO =  reordered_df.iloc[first_int_date]
+    current_spots =  reordered_df.iloc[current_int_date]   
+    # Remplit la liste avec les taux de rendement des actifs
+    for asset_code in assets_order:
+        S0 = spots_at_tO[asset_code]
+        S1 = current_spots[asset_code]
+        rate = (S1 - S0 )/ S0
+        rates.append(adjust_rate(rate))
+    
+    # Trier la liste pour exclure le meilleur et le pire taux
+    rates.sort()
+    # Calculer la moyenne des taux intermédiaires
+    average_rate = sum(rates[1:-1]) / 3
+
+    return average_rate
     
 def get_classic_dividend_rate(date, option_number):
     """
@@ -159,44 +182,38 @@ def get_classic_dividend_rate(date, option_number):
     first_date = get_saved_option_dates(option_number)[0]
     first_int_date = daily_dates_mapper(first_date)
     current_int_date = daily_dates_mapper(date)
-
     spots_at_tO =  reordered_df.iloc[first_int_date]
     current_spots =  reordered_df.iloc[current_int_date]
-    divid_rate = float('inf')
+    divid_rate = 0
+    rates = []
+        # Remplit la liste avec les taux de rendement des actifs
     for asset_code in assets_order:
         S0 = spots_at_tO[asset_code]
         S1 = current_spots[asset_code]
-        renta = (S1 - S0 )/ S0
-        #print( asset_code + " is " + str(renta))
-        renta = get_modified_rate(renta)
-        if renta < divid_rate and renta >= 0:
-            divid_rate = renta
-    if isinf(divid_rate):
-        divid_rate = 0
-    return divid_rate
+        rate = (S1 - S0 )/ S0
+        rates.append(adjust_rate(rate))
+        rates.sort(reverse=True)  # Tri décroissant pour que les meilleures performances soient au début
+        if rates[2] > 0:  # Vérifie si la troisième meilleure performance est positive
+            divid_rate = 25 * rates[2]
 
+    return divid_rate
 
 def get_final_perf(option_number):
     """
     cette méthode sert à calculer la performance finale 
-    de notre Produit Yosemite sur la periode spécifiée par option_number
+    de notre Produit Chorelia sur la periode spécifiée par option_number
     autrement pour une période, elle retourne le taux du dernier cashflow
     """
     final_perf = 0
     all_option_dates = get_saved_option_dates(option_number)
     first_int_date = daily_dates_mapper(all_option_dates[0])
     spots_at_t0 = reordered_df.iloc[first_int_date]
-
     for dividend_date in all_option_dates[1:]:
         current_int_date = daily_dates_mapper(dividend_date)
         current_spots = reordered_df.iloc[current_int_date]
-        annual_perf = 0
-        for asset_code in assets_order:
-            S0 = spots_at_t0[asset_code]
-            S1 = current_spots[asset_code]
-            annual_perf += get_modified_rate((S1 - S0) / S0)
-        annual_perf /= nb_assets
-        final_perf += max(annual_perf, 0)
+        annual_perf = calculate_average_rate(current_int_date, option_number)
+        final_perf *= (1 + annual_perf)
+    
     return final_perf
 
 
