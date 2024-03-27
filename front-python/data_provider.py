@@ -222,7 +222,7 @@ def pay_dividend_and_rebalance(spot_date, option_number):
     #ici on va lire le fichier sortie.json pour recuperer les anciennes compositions
     with open('sortie.json') as f:
         data = json.load(f)
-    old_compos = data[0]['deltas']
+    old_compos = data[-1]['deltas']
     int_date = daily_dates_mapper(spot_date)
     ptf_value = get_portfolio_value(old_compos, int_date)
     dividend_amount = get_cash_flow_amount(spot_date, int(option_number))
@@ -238,7 +238,6 @@ def pay_dividend_and_rebalance(spot_date, option_number):
     prices_except_reur = [get_one_spot_price(int_date, asset_code)[EURO_PRICE] for asset_code in assets_currency_except_reur]
     cash = ptf_value - dividend_amount
     cash -= np.dot(new_deltas, prices_except_reur)
-    print(cash)
     #on calcule la qte de zero coupons a acheter et on le set dans la rep
     delta_zc_euro = cash / get_one_spot_price(int_date, REUR)[EURO_PRICE]
     rep[REUR] = delta_zc_euro
