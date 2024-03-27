@@ -3,6 +3,8 @@ import json
 import os
 from dataframes import *
 from datetime import datetime
+import subprocess
+import numpy as np
 
 def create_past_dataframe(int_date, parametre_tester,option_number):
     past_data = parametre_tester[Past]
@@ -24,11 +26,11 @@ def update_covariance_matrix(int_date, parametre_tester, nb_days=520):
 def spots_builder_for_past(int_date):
     spots = []
     for col in range(nb_considered_underlyings):
-        spot = daily_spots.iat[int_date, col]
+        spot = reordered_df.iat[int_date, col]
         past_date = int_date
         while np.isnan(spot) and past_date:
             past_date -= 1
-            spot = daily_spots.iat[past_date, col]
+            spot = reordered_df.iat[past_date, col]
         spots.append(spot)
     return spots
 
@@ -107,7 +109,7 @@ def get_one_spot_price(int_date, asset_code):
     the_change_rate = 1
     if asset_code in underlyings:
         while np.isnan(the_price):
-            all_prices = daily_spots.iloc[int_date]
+            all_prices = reordered_df.iloc[int_date]
             the_price = all_prices[asset_code]
             currency_code = asset_to_currency[asset_code]
             if currency_code is not None:
@@ -124,7 +126,7 @@ def get_one_spot_price(int_date, asset_code):
             the_price = np.exp(all_prices[asset_code] * t / 360)
             currency_code = asset_to_currency[asset_code]
             if currency_code is not None:
-                the_change_rate = daily_spots.iloc[int_date][currency_code]
+                the_change_rate = reordered_df.iloc[int_date][currency_code]
                 if np.isnan(the_change_rate):
                     the_price = np.nan
 
@@ -137,7 +139,8 @@ def get_portfolio_value(compos, int_date):
     Calcule la valeur du ptf a cette date avec un produit scalaire.
     /!\ COMPO ORDONNEE
     """
-    all_prices = [get_one_spot_price(int_date, asset_code)[EURO_PRICE] for asset_code in assets_currency_order]
+    all_prices = [get_one_spot_price(int_date, asset_code)[EURO_PRICE] for asset_code in assets_currency_except_reur]
+
     return np.dot(all_prices, compos)
 
 
@@ -157,8 +160,8 @@ def get_classic_dividend_rate(date, option_number):
     first_int_date = daily_dates_mapper(first_date)
     current_int_date = daily_dates_mapper(date)
 
-    spots_at_tO =  daily_spots.iloc[first_int_date]
-    current_spots =  daily_spots.iloc[current_int_date]
+    spots_at_tO =  reordered_df.iloc[first_int_date]
+    current_spots =  reordered_df.iloc[current_int_date]
     divid_rate = float('inf')
     for asset_code in assets_order:
         S0 = spots_at_tO[asset_code]
@@ -182,11 +185,11 @@ def get_final_perf(option_number):
     final_perf = 0
     all_option_dates = get_saved_option_dates(option_number)
     first_int_date = daily_dates_mapper(all_option_dates[0])
-    spots_at_t0 = daily_spots.iloc[first_int_date]
+    spots_at_t0 = reordered_df.iloc[first_int_date]
 
     for dividend_date in all_option_dates[1:]:
         current_int_date = daily_dates_mapper(dividend_date)
-        current_spots = daily_spots.iloc[current_int_date]
+        current_spots = reordered_df.iloc[current_int_date]
         annual_perf = 0
         for asset_code in assets_order:
             S0 = spots_at_t0[asset_code]
@@ -202,9 +205,9 @@ def get_cash_flow_amount(date, option_number):
     Calcul des dividendes aux dates de versement
     """
     if date == get_saved_option_dates(option_number)[-1]:
-        return ReferentialAmount * (1 + 0.25*get_final_perf(option_number))
+        return DefaultReferentialAmount * (1 + 0.25*get_final_perf(option_number))
     else:
-        return ReferentialAmount * get_classic_dividend_rate(date, option_number)
+        return DefaultReferentialAmount * get_classic_dividend_rate(date, option_number)
 
 
 def is_dividend_date(date, option_number):
@@ -216,25 +219,34 @@ def is_dividend_date(date, option_number):
 
 def pay_dividend_and_rebalance(spot_date, option_number):
     rep = {}
-    data = loads(request.get_data())
-    old_compos = [data[asset_code] for asset_code in assets_currency_order]
+    #ici on va lire le fichier sortie.json pour recuperer les anciennes compositions
+    with open('sortie.json') as f:
+        data = json.load(f)
+    old_compos = data[0]['deltas']
     int_date = daily_dates_mapper(spot_date)
     ptf_value = get_portfolio_value(old_compos, int_date)
     dividend_amount = get_cash_flow_amount(spot_date, int(option_number))
-    #on va chercher à rebalancer le portefeuille
-    int_date = daily_dates_mapper(spot_date)
-    pricing_params = provide_test_parameters_from_saved_option(int_date, int(option_number))
+    pricing_params = provide_parametre_tester_from_saved_option(int_date, int(option_number),1)
     pricing_params = str(pricing_params).replace("'", '\"')
-    new_deltas = delta(pricing_params)
-    # on commence à remplir la réponse avec les 7 deltas dispos
+    command = ["./hedging_portfolio", "../../front-python/output.json", "../../front-python/sortie.json"]
+    subprocess.run(command, cwd="../src/build")
+    new_deltas = data[-1]['deltas']
+    # on commence à remplir la réponse avec les 8 deltas dispos
     for i in range(len(assets_currency_except_reur)):
         rep[assets_currency_except_reur[i]] = new_deltas[i]
     #on calcule la somme à placer au taux sans risque euro bien attendu en retirant le dividende
     prices_except_reur = [get_one_spot_price(int_date, asset_code)[EURO_PRICE] for asset_code in assets_currency_except_reur]
     cash = ptf_value - dividend_amount
-    cash -= dot(new_deltas, prices_except_reur)
+    cash -= np.dot(new_deltas, prices_except_reur)
+    print(cash)
     #on calcule la qte de zero coupons a acheter et on le set dans la rep
     delta_zc_euro = cash / get_one_spot_price(int_date, REUR)[EURO_PRICE]
     rep[REUR] = delta_zc_euro
     
     return rep
+
+if __name__ == "__main__":
+    # Exécuter la fonction pay_dividend_and_rebalance avec les arguments appropriés
+    result = pay_dividend_and_rebalance("03-05-2001", 1)
+    # Afficher le résultat
+    print(result)
