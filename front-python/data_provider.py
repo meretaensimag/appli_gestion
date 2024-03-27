@@ -225,6 +225,7 @@ def pay_dividend_and_rebalance(spot_date, option_number):
     old_compos = data[-1]['deltas']
     int_date = daily_dates_mapper(spot_date)
     ptf_value = get_portfolio_value(old_compos, int_date)
+    rep["portfolio_value"] = ptf_value
     dividend_amount = get_cash_flow_amount(spot_date, int(option_number))
     pricing_params = provide_parametre_tester_from_saved_option(int_date, int(option_number),1)
     pricing_params = str(pricing_params).replace("'", '\"')
