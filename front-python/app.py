@@ -28,7 +28,6 @@ indices = ['EUROSTOXX50', 'FTSE100', 'MIB', 'NIKKEI', 'SENSEX']
 def math_date_to_real_date(math_date):
     # Conversion de la première date d'option en format datetime
 
-    
     first_option_dates = datetime.strptime(dataf._first_option_dates[0], "%d-%m-%Y")
     index_ligne = df.index.get_loc(first_option_dates)
     index_ligne = index_ligne + math_date
@@ -130,27 +129,11 @@ def display_table(n_clicks):
             # Charger les données à partir de sortie.json
             with open('./sortie.json', 'r') as f:
                 data = json.load(f)
-                data = pd.DataFrame(data)
 
             # Extraire les données nécessaires
-            first_option_date = datetime.strptime(dataf._first_option_dates[0], "%d-%m-%Y")
-
-            # Convertir la date en chaîne de caractères dans le même format que l'index du DataFrame
-            first_option_date_str = first_option_date.strftime('%d-%m-%Y')
-
-            first_option_date_iso = first_option_date.strftime('%Y-%m-%dT00:00:00')
-
-            math_date = data['date']
-            
-            #on recupere la date de la premiere option en utilisant iloc
-            index_ligne = df.index.get_loc(first_option_date_is)
-            
-
-            index_ligne = index_ligne + math_date
-
-            date = df['Date'][index_ligne]
+            date = data[0]['date']
             deltas = data[0]['deltas']
-            deltas_stddev = data[0]['deltasStdDev']
+
             # Charger les données à partir de output.json
             with open('./output.json', 'r') as f_output:
                 data_output = json.load(f_output)
@@ -169,7 +152,6 @@ def display_table(n_clicks):
                     'Asset': assets[i],
                     'Asset Value': asset_values[i],
                     'Delta': deltas[i],
-                    'Delta StdDev': deltas_stddev[i]
                 }
                 table_data.append(entry)
 
@@ -183,7 +165,6 @@ def display_table(n_clicks):
                     {'name': 'Asset', 'id': 'Asset'},
                     {'name': 'Asset Value', 'id': 'Asset Value'},
                     {'name': 'Delta', 'id': 'Delta'},
-                    {'name': 'Delta StdDev', 'id': 'Delta StdDev'}
                 ],
                 data=df_table.to_dict('records'),
                 page_size=10
@@ -220,6 +201,7 @@ app.layout = html.Div([
     dcc.Location(id='url', refresh=False),
     html.Div(id='page-content')
 ])
+
 
 # Callback pour afficher la page en fonction de l'URL
 @app.callback(Output('page-content', 'children'),
