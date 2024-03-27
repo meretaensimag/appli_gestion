@@ -69,7 +69,8 @@ double ChoreliaOption :: payoff(const PnlMat *path) {
                     spot_at_t = pnl_mat_get(path, i, j)*exp(foreignInterestRates_[i]*timeGrid_->dateList_[i]/(double)252)/(double)pnl_mat_get(path,i , (int)assetCurrencyMapping_.size()+assetCurrencyMapping_[j]-1);
                 }
 
-                rates[j] = (spot_at_t - spot_at_0) / spot_at_0;
+                rates[j] = adjust_rate((spot_at_t - spot_at_0) / spot_at_0);
+
             }
             std::nth_element(rates.begin(), rates.begin() + 2, rates.end(), std::greater<>());
             /*si l’indice du panier qui a la 3ème rentabilité annuelle la plus grande (R[3]),
