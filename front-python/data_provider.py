@@ -97,3 +97,144 @@ def generate_output_json(filepath):
     with open(output_json_path, 'w') as json_file:
         json.dump(parametre_tester, json_file, indent=4)
 
+
+def get_one_spot_price(int_date, asset_code):
+    """
+    Given a spot_date and an asset_code, this function
+    returns the spot prices of the given asset for the considered date
+    """
+    the_price = np.nan
+    the_change_rate = 1
+    if asset_code in underlyings:
+        while np.isnan(the_price):
+            all_prices = daily_spots.iloc[int_date]
+            the_price = all_prices[asset_code]
+            currency_code = asset_to_currency[asset_code]
+            if currency_code is not None:
+                the_change_rate = all_prices[currency_code]
+                if np.isnan(the_change_rate):
+                    the_price = np.nan
+            int_date -= 1 # Retirer une date avant le prochain tour de boucle
+
+    else:
+        t = time_from_january_the_first(int_date)
+        while np.isnan(the_price):
+            all_prices = taux_interet.iloc[int_date]
+            int_date -= 1
+            the_price = np.exp(all_prices[asset_code] * t / 360)
+            currency_code = asset_to_currency[asset_code]
+            if currency_code is not None:
+                the_change_rate = daily_spots.iloc[int_date][currency_code]
+                if np.isnan(the_change_rate):
+                    the_price = np.nan
+
+    return {LOCAL_PRICE: the_price, EURO_PRICE: the_price * the_change_rate}
+
+
+def get_portfolio_value(compos, int_date):
+    """
+    recupère la compo du ptf à la date int_date
+    Calcule la valeur du ptf a cette date avec un produit scalaire.
+    /!\ COMPO ORDONNEE
+    """
+    all_prices = [get_one_spot_price(int_date, asset_code)[EURO_PRICE] for asset_code in assets_currency_order]
+    return np.dot(all_prices, compos)
+
+
+def get_modified_rate(x):
+    if x < -0.15:
+        return -0.15
+    else:
+        return x
+
+    
+def get_classic_dividend_rate(date, option_number):
+    """
+    Cette méthode prend en parametre une date de versement de divdendes et l'option_nb
+    et retourne le taux du dividende qui doit etre versé à cette date
+    """
+    first_date = get_saved_option_dates(option_number)[0]
+    first_int_date = daily_dates_mapper(first_date)
+    current_int_date = daily_dates_mapper(date)
+
+    spots_at_tO =  daily_spots.iloc[first_int_date]
+    current_spots =  daily_spots.iloc[current_int_date]
+    divid_rate = float('inf')
+    for asset_code in assets_order:
+        S0 = spots_at_tO[asset_code]
+        S1 = current_spots[asset_code]
+        renta = (S1 - S0 )/ S0
+        #print( asset_code + " is " + str(renta))
+        renta = get_modified_rate(renta)
+        if renta < divid_rate and renta >= 0:
+            divid_rate = renta
+    if isinf(divid_rate):
+        divid_rate = 0
+    return divid_rate
+
+
+def get_final_perf(option_number):
+    """
+    cette méthode sert à calculer la performance finale 
+    de notre Produit Yosemite sur la periode spécifiée par option_number
+    autrement pour une période, elle retourne le taux du dernier cashflow
+    """
+    final_perf = 0
+    all_option_dates = get_saved_option_dates(option_number)
+    first_int_date = daily_dates_mapper(all_option_dates[0])
+    spots_at_t0 = daily_spots.iloc[first_int_date]
+
+    for dividend_date in all_option_dates[1:]:
+        current_int_date = daily_dates_mapper(dividend_date)
+        current_spots = daily_spots.iloc[current_int_date]
+        annual_perf = 0
+        for asset_code in assets_order:
+            S0 = spots_at_t0[asset_code]
+            S1 = current_spots[asset_code]
+            annual_perf += get_modified_rate((S1 - S0) / S0)
+        annual_perf /= nb_assets
+        final_perf += max(annual_perf, 0)
+    return final_perf
+
+
+def get_cash_flow_amount(date, option_number):
+    """
+    Calcul des dividendes aux dates de versement
+    """
+    if date == get_saved_option_dates(option_number)[-1]:
+        return ReferentialAmount * (1 + 0.25*get_final_perf(option_number))
+    else:
+        return ReferentialAmount * get_classic_dividend_rate(date, option_number)
+
+
+def is_dividend_date(date, option_number):
+    option_dates = get_saved_option_dates(option_number)
+    if date in option_dates:
+        return True
+    else:
+        return False
+
+def pay_dividend_and_rebalance(spot_date, option_number):
+    rep = {}
+    data = loads(request.get_data())
+    old_compos = [data[asset_code] for asset_code in assets_currency_order]
+    int_date = daily_dates_mapper(spot_date)
+    ptf_value = get_portfolio_value(old_compos, int_date)
+    dividend_amount = get_cash_flow_amount(spot_date, int(option_number))
+    #on va chercher à rebalancer le portefeuille
+    int_date = daily_dates_mapper(spot_date)
+    pricing_params = provide_test_parameters_from_saved_option(int_date, int(option_number))
+    pricing_params = str(pricing_params).replace("'", '\"')
+    new_deltas = delta(pricing_params)
+    # on commence à remplir la réponse avec les 7 deltas dispos
+    for i in range(len(assets_currency_except_reur)):
+        rep[assets_currency_except_reur[i]] = new_deltas[i]
+    #on calcule la somme à placer au taux sans risque euro bien attendu en retirant le dividende
+    prices_except_reur = [get_one_spot_price(int_date, asset_code)[EURO_PRICE] for asset_code in assets_currency_except_reur]
+    cash = ptf_value - dividend_amount
+    cash -= dot(new_deltas, prices_except_reur)
+    #on calcule la qte de zero coupons a acheter et on le set dans la rep
+    delta_zc_euro = cash / get_one_spot_price(int_date, REUR)[EURO_PRICE]
+    rep[REUR] = delta_zc_euro
+    
+    return rep
