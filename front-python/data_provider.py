@@ -11,6 +11,7 @@ def create_past_dataframe(int_date, parametre_tester,option_number):
     past_df = pd.DataFrame(past_data, columns=[f'Asset_{i}' for i in range(len(past_data[0]))])
     #on creer une colonne date avec les dates de la premiere option
     past_df['Date'] = parametre_tester[Option][FixingDatesInDays][DatesInDays][0:len(past_data)]
+
     return past_df
 
 def update_interest_rates(new_interest_rates, parametre_tester):
@@ -41,6 +42,7 @@ def update_past(int_date, parametre_tester):
             past.append(spots_builder_for_past(const_date))
     past.append(spots_builder_for_past(int_date))
     parametre_tester[Past] = past
+    print(parametre_tester[Past])
 
 def remove_offset(parametre_tester):
     dates = parametre_tester[Option][FixingDatesInDays][DatesInDays]
@@ -76,26 +78,15 @@ def provide_parametre_tester(int_date, option, is_rebalancing):
     return parametre_tester
 
 def provide_parametre_tester_from_saved_option(int_date, option_num,is_rebalancing): 
+    
     return provide_parametre_tester(int_date, get_preload_option_description(option_num),is_rebalancing)
 
-def generate_output_json(filepath):
-    # Chemin du répertoire actuel
+def generate_output_json(int_date, option_num,is_rebalancing):
+    output_json_path = 'output.json'
 
-    # Chemin du fichier de sortie JSON
-    output_json_path = filepath
+    parametre_tester = provide_parametre_tester_from_saved_option(int_date, option_num, is_rebalancing)
 
-    # Date
-    date = datetime(2001, 5, 3)
-    date = daily_dates_mapper(date.strftime('%d-%m-%Y'))
-
-    option_number = 1
-
-    # boolean pour savoir si on rebalance ou non
-    is_rebalancing = True
-    # Création du paramètre testeur
-    parametre_tester = provide_parametre_tester_from_saved_option(date, option_number, is_rebalancing)
-
-    # Écriture du paramètre testeur dans le fichier JSON
+#     # Écriture du paramètre testeur dans le fichier JSON
     with open(output_json_path, 'w') as json_file:
         json.dump(parametre_tester, json_file, indent=4)
 
@@ -237,14 +228,23 @@ def is_dividend_date(date, option_number):
 def pay_dividend_and_rebalance(spot_date, option_number):
     rep = {}
     #ici on va lire le fichier sortie.json pour recuperer les anciennes compositions
+    #on teste si il y a une date 0 dans le fichier sortie.json
+    int_date = daily_dates_mapper(spot_date)    
+
     with open('sortie.json') as f:
-        data = json.load(f)
+        try:
+            data = json.load(f)
+        except json.JSONDecodeError:
+            print("The file is empty or contains invalid JSON data.")
+            pricing_params = generate_output_json(int_date, int(option_number),1)
+            command = ["./hedging_portfolio", "../../front-python/output.json", "../../front-python/sortie.json"]
+            subprocess.run(command, cwd="../src/build")
+            data = json.load(f)
     old_compos = data[-1]['deltas']
-    int_date = daily_dates_mapper(spot_date)
     ptf_value = get_portfolio_value(old_compos, int_date)
     rep["portfolio_value"] = ptf_value
     dividend_amount = get_cash_flow_amount(spot_date, int(option_number))
-    pricing_params = provide_parametre_tester_from_saved_option(int_date, int(option_number),1)
+    pricing_params = generate_output_json(int_date, int(option_number),1)
     pricing_params = str(pricing_params).replace("'", '\"')
     command = ["./hedging_portfolio", "../../front-python/output.json", "../../front-python/sortie.json"]
     subprocess.run(command, cwd="../src/build")
@@ -259,11 +259,13 @@ def pay_dividend_and_rebalance(spot_date, option_number):
     #on calcule la qte de zero coupons a acheter et on le set dans la rep
     delta_zc_euro = cash / get_one_spot_price(int_date, REUR)[EURO_PRICE]
     rep[REUR] = delta_zc_euro
-    
+    #on calcule le pnl du portefeuille
+    pnl = ptf_value + dividend_amount - np.dot(new_deltas, prices_except_reur) - delta_zc_euro * get_one_spot_price(int_date, REUR)[EURO_PRICE]
+    # rep["pnl"] = pnl    
     return rep
 
 if __name__ == "__main__":
     # Exécuter la fonction pay_dividend_and_rebalance avec les arguments appropriés
-    result = pay_dividend_and_rebalance("03-05-2001", 1)
+    result = pay_dividend_and_rebalance("06-01-2009", 3)
     # Afficher le résultat
     print(result)
