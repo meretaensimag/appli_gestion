@@ -14,12 +14,14 @@ from datetime import datetime
 external_stylesheets = ['https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css', './assets/styles.css']
 
 
+Listposition = []
+OPTIONNUMBER = 1
 DATE = datetime(2000,7,6)
 # Créer l'application Dash      
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
 # Charger les données depuis le fichier CSV
-df = pd.read_csv('../data/ClosePrice.csv') 
+df = pd.read_excel('../data/ClosePrice.xlsx') 
 
 # Convertir les colonnes de dates en objets datetime
 df['Date'] = pd.to_datetime(df['Date'])
@@ -77,20 +79,6 @@ def afficher_courbes(n_clicks, start_date, end_date):
             }
         )
 
-
-# Callback pour afficher les courbes lorsque le bouton est cliqué
-# @app.callback(Output('preview-button', 'children'),
-#               [Input('preview-button', 'n_clicks')],
-#               [Input('date-picker-range', 'start_date'),
-#                Input('date-picker-range', 'end_date')])
-# def execute_command(n_clicks, start_date, end_date):
-#     if n_clicks:
-#         dp.generate_output_json("./output.json")        
-#         command = ["./hedging_portfolio", "../../front-python/output.json", "../../front-python/sortie.json"]
-#         subprocess.run(command, cwd="../src/build")
-#         return "Prévisualisation effectuée avec succès."
-
-# Définir la mise en page de la gestion de portefeuille
 def gestion_accueil_layout():
     return html.Div(children=[
         navbar_layout(),  # Ajout de la barre de navigation
@@ -98,18 +86,19 @@ def gestion_accueil_layout():
             html.H1(children='Page de Gestion de Portefeuille', className='mt-3'),
             
             # Ajouter un formulaire pour choisir les dates de début et de fin
-            html.Div([
-                dcc.DatePickerRange(
-                    id='date-picker-range', 
-                    start_date=df['Date'].min(),
-                    end_date=DATE,
-                    display_format='DD/MM/YYYY',
-                    className='mt-3'
-                ),
-                html.Button('Réinitialiser', id='reset-button', className='btn btn-primary mt-3'),
-                html.Button('Afficher les courbes', id='afficher-courbes-button', className='btn btn-primary mt-3'),
-                html.Button('Prévisualisation', id='preview-button', className='btn btn-secondary mt-3', n_clicks=0)
-            ]),
+            # html.Div([
+            #     dcc.DatePickerRange(
+            #         id='date-picker-range', 
+            #         start_date=df['Date'].min(),
+            #         end_date=DATE,
+            #         display_format='DD/MM/YYYY',
+            #         className='mt-3'
+                 
+            html.Button('Réinitialiser', id='reset-button', className='btn btn-primary mt-3',n_clicks=0),
+            #     #html.Button('Afficher les courbes', id='afficher-courbes-button', className='btn btn-primary mt-3'),
+            html.Button('Prévisualisation', id='preview-button', className='btn btn-secondary mt-3', n_clicks=0),
+            html.Div(id="reset-output")
+            ,
             
             # Ajouter un autre formulaire pour choisir une seule date
             html.Div([
@@ -119,8 +108,8 @@ def gestion_accueil_layout():
                     display_format='DD/MM/YYYY',
                     className='mt-3'
                 ),
-                html.Button('Afficher la valeur', id='afficher-valeur-button', className='btn btn-success mt-3')
             ]),
+            html.Div(id = 'date-value'),
             
             # Div pour afficher les courbes (initiallement vide)
             html.Div(id='graph-container'),
@@ -137,19 +126,19 @@ def gestion_accueil_layout():
 def display_table(n_clicks):
     if n_clicks:
         try:
+            stringdate = DATE.strftime('%d-%m-%Y')
             # Exécuter le programme externe
-            dp.generate_output_json("./output.json",DATE)
-            command = ["./hedging_portfolio", "../../front-python/output.json", "../../front-python/sortie.json"]
-            subprocess.run(command, cwd="../src/build")
-
+            currentpos = dp.pay_dividend_and_rebalance(stringdate,OPTIONNUMBER)
+            Listposition.append(currentpos)
+            print(currentpos)
             # Charger les données à partir de sortie.json
-            with open('./sortie.json', 'r') as f:
-                data = json.load(f)
-
+            assets = ["EUROSTOXX50", "MIB", "FTSE100", "NIKKEI", "SENSEX", "RGBP", "RJPY", "RINR"]
             # Extraire les données nécessaires
-            date = data[0]['date']
-            deltas = data[0]['deltas']
-            price = data[0]['price']
+            date = currentpos['date']
+            deltas = []
+            for elem in assets:
+                deltas.append(currentpos[elem])
+            price = currentpos['price']
 
             # Charger les données à partir de output.json
             with open('./output.json', 'r') as f_output:
@@ -160,7 +149,7 @@ def display_table(n_clicks):
             table_data = []
 
             # Extraire les noms des actifs
-            assets = ["EUROSTOXX50", "MIB", "FTSE100", "NIKKEI", "SENSEX", "GBP", "JPY", "INR"]
+            
 
             # Parcourir les données et ajouter à table_data
             for i in range(len(assets)):
@@ -169,9 +158,16 @@ def display_table(n_clicks):
                     'Asset': assets[i],
                     'Asset Value': asset_values[i],
                     'Delta': deltas[i],
-                    'Price': price
+                    'Price': '///'
                 }
                 table_data.append(entry)
+            table_data.append({
+                    'Date': date,
+                    'Asset': '///',
+                    'Asset Value': '///',
+                    'Delta': '///',
+                    'Price': price
+                })
 
             # Créer le DataFrame pour la table
             df_table = pd.DataFrame(table_data)
@@ -200,12 +196,15 @@ def display_table(n_clicks):
     [Input('reset-button', 'n_clicks')]
 )
 def reset_output_file(n_clicks):
+    print("Inspi d'ailleurs, Marseille c'est the Wire")
     if n_clicks:
         try:
             # Supprimer le contenu du fichier de sortie
             with open('./sortie.json', 'w') as f:
                 f.write('')
-            return "Le fichier de sortie a été réinitialisé avec succès."
+
+            DATE = datetime(2000,7,6)
+            return ""
         except Exception as e:
             return str(e)
             
@@ -227,7 +226,6 @@ def navbar_layout():
     return html.Nav(className='navbar navbar-expand-lg navbar-light bg-light', children=[
             html.A('Accueil', href='/accueil', className='navbar-brand'),
             html.A('Gestion de Portefeuille', href='/gestion', className='navbar-brand'),
-            html.A('Contact', href='', className='navbar-brand'),
         ], style={'marginBottom': 0, 'marginTop': 0, 'paddingBottom': 0, 'paddingTop': 0})
 
 @app.callback(
@@ -237,7 +235,7 @@ def navbar_layout():
 def update_date_value(date):
     global DATE
     DATE = datetime.strptime(date, '%Y-%m-%d')
-    return 'DATE'
+    return ""
 
 # Définir la mise en page de l'application
 app.layout = html.Div([
