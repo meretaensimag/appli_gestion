@@ -185,7 +185,6 @@ def get_classic_dividend_rate(date, option_number):
     rates.sort(reverse=True)  # Tri décroissant pour que les meilleures performances soient au début
     if rates[2] > 0:  # Vérifie si la troisième meilleure performance est positive
         divid_rate = 25 * rates[2]
-
     return divid_rate
 
 def get_final_perf(option_number):
@@ -215,9 +214,11 @@ def get_cash_flow_amount(date, option_number):
         return 0
     if date == get_saved_option_dates(option_number)[-1]:
         cash_flow = DefaultReferentialAmount * (1 + 0.25*get_final_perf(option_number))
+
         return cash_flow
     else:
-        cash_flow = DefaultReferentialAmount * get_classic_dividend_rate(date, option_number)
+        cash_flow = DefaultReferentialAmount * get_classic_dividend_rate(date, option_number)        
+
         return cash_flow
 
 
@@ -259,17 +260,17 @@ def pay_dividend_and_rebalance(spot_date, option_number):
         data = json.load(f)
     old_compos = data[-1]['deltas']
     ptf_value = get_portfolio_value(old_compos, int_date)
-    rep["portfolio_value"] = ptf_value
     dividend_amount = get_cash_flow_amount(spot_date, int(option_number))
     pricing_params = generate_output_json(int_date, int(option_number),1)
     pricing_params = str(pricing_params).replace("'", '\"')
+    rep["portfolio_value"] = ptf_value
+    rep["dividend"] = dividend_amount
     command = ["./hedging_portfolio", "../../front-python/output.json", "../../front-python/sortie.json"]
     subprocess.run(command, cwd="../src/build")
     with open('sortie.json') as f:
         data = json.load(f)
     new_deltas = data[-1]['deltas']
-    print("on a les nouveaux deltas")
-    print(new_deltas)
+
     # on commence à remplir la réponse avec les 8 deltas dispos
     for i in range(len(assets_currency_except_reur)):
         rep[assets_currency_except_reur[i]] = new_deltas[i]
@@ -277,19 +278,19 @@ def pay_dividend_and_rebalance(spot_date, option_number):
     prices_except_reur = [get_one_spot_price(int_date, asset_code)[EURO_PRICE] for asset_code in assets_currency_except_reur]
     cash = ptf_value - dividend_amount
     cash -= np.dot(new_deltas, prices_except_reur)
-    rep["cash"] = cash
     #on calcule la qte de zero coupons a acheter et on le set dans la rep
     delta_zc_euro = cash / get_one_spot_price(int_date, REUR)[EURO_PRICE]
+    #on calcule le pnl du portefeuille
+    pnl = ptf_value + dividend_amount - np.dot(new_deltas, prices_except_reur) - delta_zc_euro * get_one_spot_price(int_date, REUR)[EURO_PRICE]
+    rep["cash"] = cash
     rep[REUR] = delta_zc_euro
     rep["date"] = spot_date
     rep["price"] = data[-1]['price']
-    #on calcule le pnl du portefeuille
-    pnl = ptf_value + dividend_amount - np.dot(new_deltas, prices_except_reur) - delta_zc_euro * get_one_spot_price(int_date, REUR)[EURO_PRICE]
     rep["pnl"] = pnl    
     return rep
 
 if __name__ == "__main__":
     # Exécuter la fonction pay_dividend_and_rebalance avec les arguments appropriés
-    result = pay_dividend_and_rebalance("07-07-2000", 1)
+    result = pay_dividend_and_rebalance("02-07-2004", 1)
     # Afficher le résultat
     print(result)
