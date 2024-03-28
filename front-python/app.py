@@ -202,6 +202,8 @@ def reset_output_file(n_clicks):
             # Supprimer le contenu du fichier de sortie
             with open('./sortie.json', 'w') as f:
                 f.write('')
+
+            DATE = datetime(2000,7,6)
             return ""
         except Exception as e:
             return str(e)
