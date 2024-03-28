@@ -13,6 +13,8 @@ from datetime import datetime
 # Définir les feuilles de style externes
 external_stylesheets = ['https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css', './assets/styles.css']
 
+
+DATE = datetime(2000,7,6)
 # Créer l'application Dash      
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
@@ -98,15 +100,28 @@ def gestion_accueil_layout():
             # Ajouter un formulaire pour choisir les dates de début et de fin
             html.Div([
                 dcc.DatePickerRange(
-                    id='date-picker-range',
+                    id='date-picker-range', 
                     start_date=df['Date'].min(),
-                    end_date=df['Date'].max(),
+                    end_date=DATE,
                     display_format='DD/MM/YYYY',
                     className='mt-3'
                 ),
+                html.Button('Réinitialiser', id='reset-button', className='btn btn-primary mt-3'),
                 html.Button('Afficher les courbes', id='afficher-courbes-button', className='btn btn-primary mt-3'),
                 html.Button('Prévisualisation', id='preview-button', className='btn btn-secondary mt-3', n_clicks=0)
             ]),
+            
+            # Ajouter un autre formulaire pour choisir une seule date
+            html.Div([
+                dcc.DatePickerSingle(
+                    id='single-date-picker', 
+                    date=DATE,
+                    display_format='DD/MM/YYYY',
+                    className='mt-3'
+                ),
+                html.Button('Afficher la valeur', id='afficher-valeur-button', className='btn btn-success mt-3')
+            ]),
+            
             # Div pour afficher les courbes (initiallement vide)
             html.Div(id='graph-container'),
 
@@ -123,6 +138,7 @@ def display_table(n_clicks):
     if n_clicks:
         try:
             # Exécuter le programme externe
+            dp.generate_output_json("./output.json",DATE)
             command = ["./hedging_portfolio", "../../front-python/output.json", "../../front-python/sortie.json"]
             subprocess.run(command, cwd="../src/build")
 
@@ -133,6 +149,7 @@ def display_table(n_clicks):
             # Extraire les données nécessaires
             date = data[0]['date']
             deltas = data[0]['deltas']
+            price = data[0]['price']
 
             # Charger les données à partir de output.json
             with open('./output.json', 'r') as f_output:
@@ -152,6 +169,7 @@ def display_table(n_clicks):
                     'Asset': assets[i],
                     'Asset Value': asset_values[i],
                     'Delta': deltas[i],
+                    'Price': price
                 }
                 table_data.append(entry)
 
@@ -165,6 +183,8 @@ def display_table(n_clicks):
                     {'name': 'Asset', 'id': 'Asset'},
                     {'name': 'Asset Value', 'id': 'Asset Value'},
                     {'name': 'Delta', 'id': 'Delta'},
+                    {'name': 'Price', 'id': 'Price'},
+                    
                 ],
                 data=df_table.to_dict('records'),
                 page_size=10
@@ -174,7 +194,21 @@ def display_table(n_clicks):
         except Exception as e:
             return str(e)
 
-
+# Callback pour réinitialiser le contenu du fichier de sortie
+@app.callback(
+    Output('reset-output', 'children'),
+    [Input('reset-button', 'n_clicks')]
+)
+def reset_output_file(n_clicks):
+    if n_clicks:
+        try:
+            # Supprimer le contenu du fichier de sortie
+            with open('./sortie.json', 'w') as f:
+                f.write('')
+            return "Le fichier de sortie a été réinitialisé avec succès."
+        except Exception as e:
+            return str(e)
+            
 # Définir la mise en page de l'accueil
 def accueil_layout():
     return html.Div(children=[
@@ -195,6 +229,15 @@ def navbar_layout():
             html.A('Gestion de Portefeuille', href='/gestion', className='navbar-brand'),
             html.A('Contact', href='', className='navbar-brand'),
         ], style={'marginBottom': 0, 'marginTop': 0, 'paddingBottom': 0, 'paddingTop': 0})
+
+@app.callback(
+    Output('date-value', 'children'),
+    [Input('single-date-picker', 'date')]
+)
+def update_date_value(date):
+    global DATE
+    DATE = datetime.strptime(date, '%Y-%m-%d')
+    return 'DATE'
 
 # Définir la mise en page de l'application
 app.layout = html.Div([
