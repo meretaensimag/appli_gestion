@@ -113,7 +113,7 @@ void GlobalModel::shiftAsset(PnlMat *shift_path, const PnlMat *path, int d, doub
         }
         k += 1;
     }
-    for (int i = k; i < path->m; i++) {
+    for (int i = 1; i < path->m; i++) {
         MLET(shift_path, i, d) *= (1+fdStep);
     }
 }
