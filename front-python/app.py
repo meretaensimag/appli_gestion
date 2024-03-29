@@ -1,7 +1,9 @@
 import dash
-from dash import dcc, html, Input, Output
+from dash import dcc, html, Input, Output, State
 import pandas as pd
 import plotly.graph_objs as go
+
+
 from datetime import datetime
 import subprocess
 import data_provider as dp
@@ -89,6 +91,7 @@ def gestion_accueil_layout():
             html.Button('Réinitialiser', id='reset-button', className='btn btn-primary mt-3',n_clicks=0),
             #     #html.Button('Afficher les courbes', id='afficher-courbes-button', className='btn btn-primary mt-3'),
             html.Button('Prévisualisation', id='preview-button', className='btn btn-secondary mt-3', n_clicks=0),
+            html.Button('Incrémenter la date', id='increment-date-button', className='btn btn-primary mt-3',n_clicks=0),
             html.Div(id="reset-output")
             ,
             
@@ -237,6 +240,21 @@ def display_table(n_clicks):
             return "Le fichier sortie.json ou output.json n'a pas été trouvé."
         except Exception as e:
             return str(e)
+
+
+
+@app.callback(
+    Output('single-date-picker', 'date'),
+    [Input('increment-date-button', 'n_clicks')],
+    [State('single-date-picker', 'date')]
+)
+def increment_date(n_clicks):
+    if n_clicks:
+        date_obj = datetime.strptime(DATE, '%Y-%m-%d')
+        DATE = date_obj + datetime.timedelta(days=1)  # Incrémenter la date d'un jour
+
+        return DATE.strftime('%Y-%m-%d')
+    return ""
 
 # Callback pour réinitialiser le contenu du fichier de sortie
 @app.callback(
