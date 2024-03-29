@@ -2,15 +2,13 @@ import dash
 from dash import dcc, html, Input, Output, State
 import pandas as pd
 import plotly.graph_objs as go
-
-
-from datetime import datetime
 import subprocess
 import data_provider as dp
 import dash_table
 import json
 import dataframes as dataf
 from datetime import datetime
+from datetime import timedelta
 
 # Définir les feuilles de style externes
 external_stylesheets = ['https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css', './assets/styles.css']
@@ -241,18 +239,6 @@ def display_table(n_clicks):
 
 
 
-@app.callback(
-    Output('single-date-picker', 'date'),
-    [Input('increment-date-button', 'n_clicks')],
-    [State('single-date-picker', 'date')]
-)
-def increment_date(n_clicks):
-    if n_clicks:
-        date_obj = datetime.strptime(DATE, '%Y-%m-%d')
-        DATE = date_obj + datetime.timedelta(days=1)  # Incrémenter la date d'un jour
-
-        return DATE.strftime('%Y-%m-%d')
-    return ""
 
 # Callback pour réinitialiser le contenu du fichier de sortie
 @app.callback(

@@ -57,10 +57,10 @@ RM = /usr/local/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /user/8/marecp/Gestion-Produit-structure/appli_gestion/src
+CMAKE_SOURCE_DIR = /user/4/.base/mereta/home/3A/appli_gestion/appli_gestion/src
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /user/8/marecp/Gestion-Produit-structure/appli_gestion/src/build
+CMAKE_BINARY_DIR = /user/4/.base/mereta/home/3A/appli_gestion/appli_gestion/src/build
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -87,9 +87,9 @@ edit_cache/fast: edit_cache
 
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /user/8/marecp/Gestion-Produit-structure/appli_gestion/src/build/CMakeFiles /user/8/marecp/Gestion-Produit-structure/appli_gestion/src/build//CMakeFiles/progress.marks
+	$(CMAKE_COMMAND) -E cmake_progress_start /user/4/.base/mereta/home/3A/appli_gestion/appli_gestion/src/build/CMakeFiles /user/4/.base/mereta/home/3A/appli_gestion/appli_gestion/src/build//CMakeFiles/progress.marks
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start /user/8/marecp/Gestion-Produit-structure/appli_gestion/src/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /user/4/.base/mereta/home/3A/appli_gestion/appli_gestion/src/build/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
@@ -165,6 +165,33 @@ Asset.s: Asset.cpp.s
 Asset.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/hedging_portfolio.dir/build.make CMakeFiles/hedging_portfolio.dir/Asset.cpp.s
 .PHONY : Asset.cpp.s
+
+ChoreliaOption.o: ChoreliaOption.cpp.o
+.PHONY : ChoreliaOption.o
+
+# target to build an object file
+ChoreliaOption.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hedging_portfolio.dir/build.make CMakeFiles/hedging_portfolio.dir/ChoreliaOption.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/fx_hedging.dir/build.make CMakeFiles/fx_hedging.dir/ChoreliaOption.cpp.o
+.PHONY : ChoreliaOption.cpp.o
+
+ChoreliaOption.i: ChoreliaOption.cpp.i
+.PHONY : ChoreliaOption.i
+
+# target to preprocess a source file
+ChoreliaOption.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hedging_portfolio.dir/build.make CMakeFiles/hedging_portfolio.dir/ChoreliaOption.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/fx_hedging.dir/build.make CMakeFiles/fx_hedging.dir/ChoreliaOption.cpp.i
+.PHONY : ChoreliaOption.cpp.i
+
+ChoreliaOption.s: ChoreliaOption.cpp.s
+.PHONY : ChoreliaOption.s
+
+# target to generate assembly for a file
+ChoreliaOption.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hedging_portfolio.dir/build.make CMakeFiles/hedging_portfolio.dir/ChoreliaOption.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/fx_hedging.dir/build.make CMakeFiles/fx_hedging.dir/ChoreliaOption.cpp.s
+.PHONY : ChoreliaOption.cpp.s
 
 Currency.o: Currency.cpp.o
 .PHONY : Currency.o
@@ -382,126 +409,6 @@ TimeGrid.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/hedging_portfolio.dir/build.make CMakeFiles/hedging_portfolio.dir/TimeGrid.cpp.s
 .PHONY : TimeGrid.cpp.s
 
-Utils.o: Utils.cpp.o
-.PHONY : Utils.o
-
-# target to build an object file
-Utils.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/hedging_portfolio.dir/build.make CMakeFiles/hedging_portfolio.dir/Utils.cpp.o
-.PHONY : Utils.cpp.o
-
-Utils.i: Utils.cpp.i
-.PHONY : Utils.i
-
-# target to preprocess a source file
-Utils.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/hedging_portfolio.dir/build.make CMakeFiles/hedging_portfolio.dir/Utils.cpp.i
-.PHONY : Utils.cpp.i
-
-Utils.s: Utils.cpp.s
-.PHONY : Utils.s
-
-# target to generate assembly for a file
-Utils.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/hedging_portfolio.dir/build.make CMakeFiles/hedging_portfolio.dir/Utils.cpp.s
-.PHONY : Utils.cpp.s
-
-call_currency.o: call_currency.cpp.o
-.PHONY : call_currency.o
-
-# target to build an object file
-call_currency.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/hedging_portfolio.dir/build.make CMakeFiles/hedging_portfolio.dir/call_currency.cpp.o
-.PHONY : call_currency.cpp.o
-
-call_currency.i: call_currency.cpp.i
-.PHONY : call_currency.i
-
-# target to preprocess a source file
-call_currency.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/hedging_portfolio.dir/build.make CMakeFiles/hedging_portfolio.dir/call_currency.cpp.i
-.PHONY : call_currency.cpp.i
-
-call_currency.s: call_currency.cpp.s
-.PHONY : call_currency.s
-
-# target to generate assembly for a file
-call_currency.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/hedging_portfolio.dir/build.make CMakeFiles/hedging_portfolio.dir/call_currency.cpp.s
-.PHONY : call_currency.cpp.s
-
-call_quanto.o: call_quanto.cpp.o
-.PHONY : call_quanto.o
-
-# target to build an object file
-call_quanto.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/hedging_portfolio.dir/build.make CMakeFiles/hedging_portfolio.dir/call_quanto.cpp.o
-.PHONY : call_quanto.cpp.o
-
-call_quanto.i: call_quanto.cpp.i
-.PHONY : call_quanto.i
-
-# target to preprocess a source file
-call_quanto.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/hedging_portfolio.dir/build.make CMakeFiles/hedging_portfolio.dir/call_quanto.cpp.i
-.PHONY : call_quanto.cpp.i
-
-call_quanto.s: call_quanto.cpp.s
-.PHONY : call_quanto.s
-
-# target to generate assembly for a file
-call_quanto.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/hedging_portfolio.dir/build.make CMakeFiles/hedging_portfolio.dir/call_quanto.cpp.s
-.PHONY : call_quanto.cpp.s
-
-foreign_asian.o: foreign_asian.cpp.o
-.PHONY : foreign_asian.o
-
-# target to build an object file
-foreign_asian.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/hedging_portfolio.dir/build.make CMakeFiles/hedging_portfolio.dir/foreign_asian.cpp.o
-.PHONY : foreign_asian.cpp.o
-
-foreign_asian.i: foreign_asian.cpp.i
-.PHONY : foreign_asian.i
-
-# target to preprocess a source file
-foreign_asian.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/hedging_portfolio.dir/build.make CMakeFiles/hedging_portfolio.dir/foreign_asian.cpp.i
-.PHONY : foreign_asian.cpp.i
-
-foreign_asian.s: foreign_asian.cpp.s
-.PHONY : foreign_asian.s
-
-# target to generate assembly for a file
-foreign_asian.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/hedging_portfolio.dir/build.make CMakeFiles/hedging_portfolio.dir/foreign_asian.cpp.s
-.PHONY : foreign_asian.cpp.s
-
-foreign_perf_basket.o: foreign_perf_basket.cpp.o
-.PHONY : foreign_perf_basket.o
-
-# target to build an object file
-foreign_perf_basket.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/hedging_portfolio.dir/build.make CMakeFiles/hedging_portfolio.dir/foreign_perf_basket.cpp.o
-.PHONY : foreign_perf_basket.cpp.o
-
-foreign_perf_basket.i: foreign_perf_basket.cpp.i
-.PHONY : foreign_perf_basket.i
-
-# target to preprocess a source file
-foreign_perf_basket.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/hedging_portfolio.dir/build.make CMakeFiles/hedging_portfolio.dir/foreign_perf_basket.cpp.i
-.PHONY : foreign_perf_basket.cpp.i
-
-foreign_perf_basket.s: foreign_perf_basket.cpp.s
-.PHONY : foreign_perf_basket.s
-
-# target to generate assembly for a file
-foreign_perf_basket.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/hedging_portfolio.dir/build.make CMakeFiles/hedging_portfolio.dir/foreign_perf_basket.cpp.s
-.PHONY : foreign_perf_basket.cpp.s
-
 hedging_portfolio.o: hedging_portfolio.cpp.o
 .PHONY : hedging_portfolio.o
 
@@ -553,29 +460,32 @@ json_reader.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/fx_hedging.dir/build.make CMakeFiles/fx_hedging.dir/json_reader.cpp.s
 .PHONY : json_reader.cpp.s
 
-quanto_exchange.o: quanto_exchange.cpp.o
-.PHONY : quanto_exchange.o
+python_bindings.o: python_bindings.cpp.o
+.PHONY : python_bindings.o
 
 # target to build an object file
-quanto_exchange.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/hedging_portfolio.dir/build.make CMakeFiles/hedging_portfolio.dir/quanto_exchange.cpp.o
-.PHONY : quanto_exchange.cpp.o
+python_bindings.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hedging_portfolio.dir/build.make CMakeFiles/hedging_portfolio.dir/python_bindings.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/fx_hedging.dir/build.make CMakeFiles/fx_hedging.dir/python_bindings.cpp.o
+.PHONY : python_bindings.cpp.o
 
-quanto_exchange.i: quanto_exchange.cpp.i
-.PHONY : quanto_exchange.i
+python_bindings.i: python_bindings.cpp.i
+.PHONY : python_bindings.i
 
 # target to preprocess a source file
-quanto_exchange.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/hedging_portfolio.dir/build.make CMakeFiles/hedging_portfolio.dir/quanto_exchange.cpp.i
-.PHONY : quanto_exchange.cpp.i
+python_bindings.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hedging_portfolio.dir/build.make CMakeFiles/hedging_portfolio.dir/python_bindings.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/fx_hedging.dir/build.make CMakeFiles/fx_hedging.dir/python_bindings.cpp.i
+.PHONY : python_bindings.cpp.i
 
-quanto_exchange.s: quanto_exchange.cpp.s
-.PHONY : quanto_exchange.s
+python_bindings.s: python_bindings.cpp.s
+.PHONY : python_bindings.s
 
 # target to generate assembly for a file
-quanto_exchange.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/hedging_portfolio.dir/build.make CMakeFiles/hedging_portfolio.dir/quanto_exchange.cpp.s
-.PHONY : quanto_exchange.cpp.s
+python_bindings.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hedging_portfolio.dir/build.make CMakeFiles/hedging_portfolio.dir/python_bindings.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/fx_hedging.dir/build.make CMakeFiles/fx_hedging.dir/python_bindings.cpp.s
+.PHONY : python_bindings.cpp.s
 
 # Help Target
 help:
@@ -590,6 +500,9 @@ help:
 	@echo "... Asset.o"
 	@echo "... Asset.i"
 	@echo "... Asset.s"
+	@echo "... ChoreliaOption.o"
+	@echo "... ChoreliaOption.i"
+	@echo "... ChoreliaOption.s"
 	@echo "... Currency.o"
 	@echo "... Currency.i"
 	@echo "... Currency.s"
@@ -617,30 +530,15 @@ help:
 	@echo "... TimeGrid.o"
 	@echo "... TimeGrid.i"
 	@echo "... TimeGrid.s"
-	@echo "... Utils.o"
-	@echo "... Utils.i"
-	@echo "... Utils.s"
-	@echo "... call_currency.o"
-	@echo "... call_currency.i"
-	@echo "... call_currency.s"
-	@echo "... call_quanto.o"
-	@echo "... call_quanto.i"
-	@echo "... call_quanto.s"
-	@echo "... foreign_asian.o"
-	@echo "... foreign_asian.i"
-	@echo "... foreign_asian.s"
-	@echo "... foreign_perf_basket.o"
-	@echo "... foreign_perf_basket.i"
-	@echo "... foreign_perf_basket.s"
 	@echo "... hedging_portfolio.o"
 	@echo "... hedging_portfolio.i"
 	@echo "... hedging_portfolio.s"
 	@echo "... json_reader.o"
 	@echo "... json_reader.i"
 	@echo "... json_reader.s"
-	@echo "... quanto_exchange.o"
-	@echo "... quanto_exchange.i"
-	@echo "... quanto_exchange.s"
+	@echo "... python_bindings.o"
+	@echo "... python_bindings.i"
+	@echo "... python_bindings.s"
 .PHONY : help
 
 
