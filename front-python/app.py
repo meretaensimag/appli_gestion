@@ -31,17 +31,26 @@ indices = ['EUROSTOXX50', 'FTSE100', 'MIB', 'NIKKEI', 'SENSEX']
 
 
 
-# Callback pour afficher les courbes lorsque le bouton est cliqué
-@app.callback(Output('graph-container', 'children'),
-              [Input('afficher-courbes-button', 'n_clicks')],
-              [Input('date-picker-range', 'start_date'),
-               Input('date-picker-range', 'end_date')])
-def afficher_courbes(n_clicks, start_date, end_date):
+@app.callback(
+    Output('additional-graph-container', 'children'),
+    [Input('afficher-nouvelles-courbes-button', 'n_clicks')],
+    [Input('date-picker-range', 'start_date'),
+     Input('date-picker-range', 'end_date')]
+)
+def afficher_nouvelles_courbes(n_clicks, start_date):
     if n_clicks:
 
         # Convertir les dates en objets datetime
-        start_date = datetime.strptime(start_date, '%Y-%m-%d')
-        end_date = datetime.strptime(end_date, '%Y-%m-%d')
+        if OPTIONNUMBER == 1:
+            end_date = dataf._first_option_dates[-1]
+        elif OPTIONNUMBER == 2:
+            end_date = dataf._second_option_dates[-1]
+        elif OPTIONNUMBER == 3:
+            end_date = dataf._third_option_dates[-1]
+        else:
+            end_date = datetime.today()
+        print(start_date)
+        print(end_date)
 
         # Filtrer les données en fonction des dates sélectionnées
         filtered_df = df[(df['Date'] >= start_date) & (df['Date'] <= end_date)]
@@ -76,43 +85,39 @@ def gestion_accueil_layout():
         html.Div(children=[
             html.H1(children='Page de Gestion de Portefeuille', className='mt-3'),
             
-
             html.Button('Réinitialiser', id='reset-button', className='btn btn-primary mt-3',n_clicks=0),
-            #     #html.Button('Afficher les courbes', id='afficher-courbes-button', className='btn btn-primary mt-3'),
             html.Button('Prévisualisation', id='preview-button', className='btn btn-secondary mt-3', n_clicks=0),
-            html.Div(id="reset-output")
-            ,
+            html.Button('Afficher Nouvelles Courbes', id='afficher-nouvelles-courbes-button', className='btn btn-primary mt-3'),
+
+            html.Div(id="reset-output"),
             
             # Ajouter un autre formulaire pour choisir une seule date
             html.Div([
-            html.Label("Choisir l'élément option :"),
-            dcc.Dropdown(
-                id='option-dropdown',
-                options=[
-                    {'label': 'Option 1', 'value': 1},
-                    {'label': 'Option 2', 'value': 2},
-                    {'label': 'Option 3', 'value': 3}
-                ],
-                value=OPTIONNUMBER,
-            )
+                html.Label("Choisir l'élément option :"),
+                dcc.Dropdown(
+                    id='option-dropdown',
+                    options=[
+                        {'label': 'Option 1', 'value': 1},
+                        {'label': 'Option 2', 'value': 2},
+                        {'label': 'Option 3', 'value': 3}
+                    ],
+                    value=OPTIONNUMBER,
+                )
             ], className='mt-3'),
+            
             html.Div([
                 dcc.DatePickerSingle(
                     id='single-date-picker', 
-                    date=DATE,
+                    date=datetime.today(),
                     display_format='DD/MM/YYYY',
                     className='mt-3'
                 ),
             ]),
-
             
-            html.Div(id = 'date-value'),
-            
-            # Div pour afficher les courbes (initiallement vide)
-            html.Div(id='graph-container'),
-
-            # Ajouter la DataTable pour afficher les valeurs du fichier sortie.json
-            html.Div(id='table-container')
+            html.Div(id='date-value'),
+            html.Div(id='graph-container'),  # Div pour afficher les courbes (initiallement vide)
+            html.Div(id='additional-graph-container'),  # Div pour afficher le nouveau graphique
+            html.Div(id='table-container')  # Ajouter la DataTable pour afficher les valeurs du fichier sortie.json
         ], className='content')
     ])
 
@@ -131,6 +136,7 @@ def display_table(n_clicks):
             else:
                 previous_rep = Listposition[len_previousrep-1]
 
+            print(stringdate)
             currentpos = dp.pay_dividend_and_rebalance(stringdate,OPTIONNUMBER,previous_rep)
             Listposition.append(currentpos)
             print(currentpos)
@@ -270,8 +276,7 @@ def navbar_layout():
 def update_date_value(date):
     global DATE
     DATE = datetime.strptime(date, '%Y-%m-%d')
-    html.Div(id= 'date-value',children=f"Date sélectionnée : {date}")
-    return ""
+    return DATE
 
 @app.callback(
     Output('single-date-picker', 'date'),
@@ -279,11 +284,11 @@ def update_date_value(date):
 )
 def update_default_date(option_number):
     if option_number == 1:
-        return dataf._first_option_dates[0]  # Utiliser la première date d'option si option number vaut 1
+        return datetime.strptime(dataf._first_option_dates[0], '%d-%m-%Y')  # Utiliser la première date d'option si option number vaut 1
     elif option_number == 2:
-        return dataf._second_option_dates[1]  # Utiliser la deuxième date d'option si option number vaut 2
+        return datetime.strptime(dataf._second_option_dates[0], '%d-%m-%Y')   # Utiliser la deuxième date d'option si option number vaut 2
     elif option_number == 3:
-        return dataf._third_option_dates[2]  # Utiliser la troisième date d'option si option number vaut 3
+        return datetime.strptime(dataf._third_option_dates[0], '%d-%m-%Y')   # Utiliser la troisième date d'option si option number vaut 3
     else:
         return datetime.today()
 
