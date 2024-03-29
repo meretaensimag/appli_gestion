@@ -29,15 +29,6 @@ df['Date'] = pd.to_datetime(df['Date'])
 # Indices à afficher
 indices = ['EUROSTOXX50', 'FTSE100', 'MIB', 'NIKKEI', 'SENSEX']
 
-def math_date_to_real_date(math_date):
-    # Conversion de la première date d'option en format datetime
-
-    first_option_dates = datetime.strptime(dataf._first_option_dates[0], "%d-%m-%Y")
-    index_ligne = df.index.get_loc(first_option_dates)
-    index_ligne = index_ligne + math_date
-    date = df['Date'][index_ligne]
-    # Calcul de la vraie date en ajoutant le nombre de jours écoulés depuis la première date d'option
-    return date
 
 
 # Callback pour afficher les courbes lorsque le bouton est cliqué
@@ -94,14 +85,6 @@ def gestion_accueil_layout():
             
             # Ajouter un autre formulaire pour choisir une seule date
             html.Div([
-                dcc.DatePickerSingle(
-                    id='single-date-picker', 
-                    date=DATE,
-                    display_format='DD/MM/YYYY',
-                    className='mt-3'
-                ),
-            ]),
-            html.Div([
             html.Label("Choisir l'élément option :"),
             dcc.Dropdown(
                 id='option-dropdown',
@@ -110,9 +93,18 @@ def gestion_accueil_layout():
                     {'label': 'Option 2', 'value': 2},
                     {'label': 'Option 3', 'value': 3}
                 ],
-                value=OPTIONNUMBER
+                value=OPTIONNUMBER,
             )
-        ], className='mt-3'),
+            ], className='mt-3'),
+            html.Div([
+                dcc.DatePickerSingle(
+                    id='single-date-picker', 
+                    date=DATE,
+                    display_format='DD/MM/YYYY',
+                    className='mt-3'
+                ),
+            ]),
+
             
             html.Div(id = 'date-value'),
             
@@ -278,7 +270,22 @@ def navbar_layout():
 def update_date_value(date):
     global DATE
     DATE = datetime.strptime(date, '%Y-%m-%d')
+    html.Div(id= 'date-value',children=f"Date sélectionnée : {date}")
     return ""
+
+@app.callback(
+    Output('single-date-picker', 'date'),
+    [Input('option-dropdown', 'value')]
+)
+def update_default_date(option_number):
+    if option_number == 1:
+        return dataf._first_option_dates[0]  # Utiliser la première date d'option si option number vaut 1
+    elif option_number == 2:
+        return dataf._second_option_dates[1]  # Utiliser la deuxième date d'option si option number vaut 2
+    elif option_number == 3:
+        return dataf._third_option_dates[2]  # Utiliser la troisième date d'option si option number vaut 3
+    else:
+        return datetime.today()
 
 # Définir la mise en page de l'application
 app.layout = html.Div([
