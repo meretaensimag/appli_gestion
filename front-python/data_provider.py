@@ -244,7 +244,7 @@ def initialisation(option_number,rep):
         rep["portfolio_value"] = DefaultReferentialAmount
         for i in range(len(assets_currency_except_reur)):
             rep[assets_currency_except_reur[i]] = old_compos[i]
-        rep["cash"] = DefaultReferentialAmount
+        rep["cash"] = DefaultReferentialAmount-np.dot(old_compos, [get_one_spot_price(int_date, asset_code)[EURO_PRICE] for asset_code in assets_currency_except_reur])
         rep["date"] = get_saved_option_dates(option_number)[0]
         rep["price"] = data[-1]['price']
         rep["pnl"] = 0
@@ -271,7 +271,6 @@ def pay_dividend_and_rebalance(spot_date, option_number,rep_precedent):
     with open('sortie.json') as f:
         data = json.load(f)
     new_deltas = data[-1]['deltas']
-
     # on commence à remplir la réponse avec les 8 deltas dispos
     for i in range(len(assets_currency_except_reur)):
         rep[assets_currency_except_reur[i]] = new_deltas[i]
@@ -279,8 +278,6 @@ def pay_dividend_and_rebalance(spot_date, option_number,rep_precedent):
     prices_except_reur = [get_one_spot_price(int_date, asset_code)[EURO_PRICE] for asset_code in assets_currency_except_reur]
     cash = ptf_value - dividend_amount
     cash -= np.dot(new_deltas, prices_except_reur)
-    #on calcule la qte de zero coupons a acheter et on le set dans la rep
-    delta_zc_euro = cash / get_one_spot_price(int_date, REUR)[EURO_PRICE]
     #on calcule le pnl du portefeuille
     rep["cash"] = cash
     rep["date"] = spot_date
