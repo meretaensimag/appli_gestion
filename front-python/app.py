@@ -85,15 +85,7 @@ def gestion_accueil_layout():
         html.Div(children=[
             html.H1(children='Page de Gestion de Portefeuille', className='mt-3'),
             
-            # Ajouter un formulaire pour choisir les dates de début et de fin
-            # html.Div([
-            #     dcc.DatePickerRange(
-            #         id='date-picker-range', 
-            #         start_date=df['Date'].min(),
-            #         end_date=DATE,
-            #         display_format='DD/MM/YYYY',
-            #         className='mt-3'
-                 
+
             html.Button('Réinitialiser', id='reset-button', className='btn btn-primary mt-3',n_clicks=0),
             #     #html.Button('Afficher les courbes', id='afficher-courbes-button', className='btn btn-primary mt-3'),
             html.Button('Prévisualisation', id='preview-button', className='btn btn-secondary mt-3', n_clicks=0),
@@ -109,6 +101,19 @@ def gestion_accueil_layout():
                     className='mt-3'
                 ),
             ]),
+            html.Div([
+            html.Label("Choisir l'élément option :"),
+            dcc.Dropdown(
+                id='option-dropdown',
+                options=[
+                    {'label': 'Option 1', 'value': 1},
+                    {'label': 'Option 2', 'value': 2},
+                    {'label': 'Option 3', 'value': 3}
+                ],
+                value=OPTIONNUMBER
+            )
+        ], className='mt-3'),
+            
             html.Div(id = 'date-value'),
             
             # Div pour afficher les courbes (initiallement vide)
@@ -128,13 +133,12 @@ def display_table(n_clicks):
         try:
             stringdate = DATE.strftime('%d-%m-%Y')
             # Exécuter le programme externe
-            print(Listposition)
             len_previousrep = len(Listposition)
-            print(len_previousrep)
             if len_previousrep == 0:
                 previous_rep = {}
             else:
                 previous_rep = Listposition[len_previousrep-1]
+
             currentpos = dp.pay_dividend_and_rebalance(stringdate,OPTIONNUMBER,previous_rep)
             Listposition.append(currentpos)
             print(currentpos)
@@ -202,15 +206,25 @@ def display_table(n_clicks):
                             'y': [entry['portfolio_value'] for entry in Listposition],
                             'type': 'line',
                             'name': 'Portfolio Value'
+                        },
+                        {
+                            'x': [entry['date'] for entry in Listposition],
+                            'y': [entry['price'] for entry in Listposition],
+                            'type': 'line',
+                            'name': 'Price',
+                            'mode': 'lines+markers',
+                            'line': {'dash': 'dot', 'width': 1},
+                            'marker': {'symbol': 'circle-open'}
                         }
                     ],
                     'layout': {
-                        'title': 'Évolution de la Portfolio Value',
+                        'title': 'Évolution de la Portfolio Value et du Prix',
                         'xaxis': {'title': 'Date'},
-                        'yaxis': {'title': 'Portfolio Value'}
+                        'yaxis': {'title': 'Valeur'},
                     }
                 }
             )
+
 
             return [res, cash_graph] 
         except FileNotFoundError:
@@ -272,6 +286,14 @@ app.layout = html.Div([
     html.Div(id='page-content')
 ])
 
+@app.callback(
+    Output('option-dropdown', 'value'),
+    [Input('option-dropdown', 'value')]
+)
+def update_option_number(value):
+    global OPTIONNUMBER
+    OPTIONNUMBER = value
+    return value
 
 # Callback pour afficher la page en fonction de l'URL
 @app.callback(Output('page-content', 'children'),
