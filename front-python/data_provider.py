@@ -123,15 +123,17 @@ def get_one_spot_price(int_date, asset_code):
     return {LOCAL_PRICE: the_price, EURO_PRICE: the_price * the_change_rate}
 
 
-def get_portfolio_value(compos, int_date):
+def get_portfolio_value(compos, int_date,cash_precedent,date_precedente):
     """
     recupère la compo du ptf à la date int_date
     Calcule la valeur du ptf a cette date avec un produit scalaire.
     /!\ COMPO ORDONNEE
     """
     all_prices = [get_one_spot_price(int_date, asset_code)[EURO_PRICE] for asset_code in assets_currency_except_reur]
+    #on calcul le cash actualise
+    cash = cash_precedent * np.exp(taux_interet.iloc[int_date][REUR] * (int_date - date_precedente) / 252)
 
-    return np.dot(all_prices, compos)
+    return np.dot(all_prices, compos) + cash
 
 
 def adjust_rate(x):
@@ -239,11 +241,10 @@ def initialisation(option_number,rep):
         with open('sortie.json') as f:
             data = json.load(f)
         old_compos = data[-1]['deltas']
-        rep["portfolio_value"] = get_portfolio_value(old_compos, int_date)
+        rep["portfolio_value"] = DefaultReferentialAmount
         for i in range(len(assets_currency_except_reur)):
             rep[assets_currency_except_reur[i]] = old_compos[i]
         rep["cash"] = DefaultReferentialAmount
-        rep[REUR] = 0
         rep["date"] = get_saved_option_dates(option_number)[0]
         rep["price"] = data[-1]['price']
         rep["pnl"] = 0
@@ -251,7 +252,7 @@ def initialisation(option_number,rep):
         return True
     return False
 
-def pay_dividend_and_rebalance(spot_date, option_number):
+def pay_dividend_and_rebalance(spot_date, option_number,rep_precedent):
     rep = {}
     int_date = daily_dates_mapper(spot_date)   
     if initialisation(option_number,rep):
@@ -259,7 +260,7 @@ def pay_dividend_and_rebalance(spot_date, option_number):
     with open('sortie.json') as f:
         data = json.load(f)
     old_compos = data[-1]['deltas']
-    ptf_value = get_portfolio_value(old_compos, int_date)
+    ptf_value = get_portfolio_value(old_compos, int_date,rep_precedent["cash"],daily_dates_mapper(rep_precedent["date"]))
     dividend_amount = get_cash_flow_amount(spot_date, int(option_number))
     pricing_params = generate_output_json(int_date, int(option_number),1)
     pricing_params = str(pricing_params).replace("'", '\"')
@@ -281,16 +282,18 @@ def pay_dividend_and_rebalance(spot_date, option_number):
     #on calcule la qte de zero coupons a acheter et on le set dans la rep
     delta_zc_euro = cash / get_one_spot_price(int_date, REUR)[EURO_PRICE]
     #on calcule le pnl du portefeuille
-    pnl = ptf_value + dividend_amount - np.dot(new_deltas, prices_except_reur) - delta_zc_euro * get_one_spot_price(int_date, REUR)[EURO_PRICE]
     rep["cash"] = cash
-    rep[REUR] = delta_zc_euro
     rep["date"] = spot_date
     rep["price"] = data[-1]['price']
-    rep["pnl"] = pnl    
     return rep
 
 if __name__ == "__main__":
     # Exécuter la fonction pay_dividend_and_rebalance avec les arguments appropriés
-    result = pay_dividend_and_rebalance("02-07-2004", 1)
+    rep_precedent = {"cash": 1000, "date": "06-07-2000"}
+    result = pay_dividend_and_rebalance("06-07-2000", 1,rep_precedent)
+    print(result)
+
+    rep_precedent = result
+    result = pay_dividend_and_rebalance("08-07-2001", 1,rep_precedent)
     # Afficher le résultat
     print(result)
