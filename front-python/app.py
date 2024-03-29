@@ -202,7 +202,13 @@ def display_table(n_clicks):
                             'y': [entry['portfolio_value'] for entry in Listposition],
                             'type': 'line',
                             'name': 'Portfolio Value'
-                        }
+                        },
+                        {
+                            'x': [entry['date'] for entry in Listposition],
+                            'y': [entry['portfolio_value'] * 1.03 for entry in Listposition], 
+                            'type': 'line',
+                            'name': 'Liquidative Portfolio Value'
+                        },
                     ],
                     'layout': {
                         'title': 'Évolution de la Portfolio Value',
