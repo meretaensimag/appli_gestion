@@ -128,7 +128,14 @@ def display_table(n_clicks):
         try:
             stringdate = DATE.strftime('%d-%m-%Y')
             # Exécuter le programme externe
-            currentpos = dp.pay_dividend_and_rebalance(stringdate,OPTIONNUMBER)
+            print(Listposition)
+            len_previousrep = len(Listposition)
+            print(len_previousrep)
+            if len_previousrep == 0:
+                previous_rep = {}
+            else:
+                previous_rep = Listposition[len_previousrep-1]
+            currentpos = dp.pay_dividend_and_rebalance(stringdate,OPTIONNUMBER,previous_rep)
             Listposition.append(currentpos)
             print(currentpos)
             # Charger les données à partir de sortie.json
@@ -258,3 +265,4 @@ def display_page(pathname):
 # Démarrer le serveur
 if __name__ == '__main__':
     app.run_server(debug=False)
+    reset_output_file(1)
