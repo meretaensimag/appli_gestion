@@ -179,7 +179,7 @@ def display_table(n_clicks):
             # Créer le DataFrame pour la table
             df_table = pd.DataFrame(table_data)
 
-            return dash_table.DataTable(
+            res =  dash_table.DataTable(
                 id='table',
                 columns=[
                     {'name': 'Date', 'id': 'Date'},
@@ -192,6 +192,27 @@ def display_table(n_clicks):
                 data=df_table.to_dict('records'),
                 page_size=10
             )
+
+            cash_graph = dcc.Graph(
+                id='cash-graph',
+                figure={
+                    'data': [
+                        {
+                            'x': [entry['date'] for entry in Listposition],
+                            'y': [entry['portfolio_value'] for entry in Listposition],
+                            'type': 'line',
+                            'name': 'Portfolio Value'
+                        }
+                    ],
+                    'layout': {
+                        'title': 'Évolution de la Portfolio Value',
+                        'xaxis': {'title': 'Date'},
+                        'yaxis': {'title': 'Portfolio Value'}
+                    }
+                }
+            )
+
+            return [res, cash_graph] 
         except FileNotFoundError:
             return "Le fichier sortie.json ou output.json n'a pas été trouvé."
         except Exception as e:
@@ -203,18 +224,19 @@ def display_table(n_clicks):
     [Input('reset-button', 'n_clicks')]
 )
 def reset_output_file(n_clicks):
-    print("Inspi d'ailleurs, Marseille c'est the Wire")
+
     if n_clicks:
         try:
             # Supprimer le contenu du fichier de sortie
             with open('./sortie.json', 'w') as f:
                 f.write('')
 
-            DATE = datetime(2000,7,6)
-            return ""
+            Listposition.clear()  # Réinitialiser les données des positions
+            
+            # Rafraîchir la page en mettant à jour l'URL
+            return dcc.Location(pathname='/gestion', id='dummy-location')
         except Exception as e:
             return str(e)
-            
 # Définir la mise en page de l'accueil
 def accueil_layout():
     return html.Div(children=[
