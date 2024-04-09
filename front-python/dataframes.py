@@ -8,7 +8,7 @@ from sys import stderr
 from datetime import datetime, timedelta
 
 # Ou définissez le chemin de manière explicite
-data_path = r"C:\projet_gestion\appli_gestion\data"
+data_path = '../data'
 
 
 # DATA FROM INFO FILE
@@ -52,6 +52,7 @@ _dataframe_dtypes["Date"] = str  # Rajout date
 
 
 # DATAFRAMES BUILDING
+
 _close_price = path.join(data_path, "ClosePrice.xlsx")
 close_price = pd.read_excel(_close_price, dtype=_dataframe_dtypes, na_values="Nan",
                           usecols=["Date"] + assets_order, index_col=0)
@@ -101,6 +102,12 @@ xfor_ret.index = pd.to_datetime(xfor_ret.index)
 
 # Then format the index to the desired string format
 xfor_ret.index = xfor_ret.index.strftime('%d-%m-%Y')
+
+close_price = close_price.ffill()
+close_ret = close_ret.ffill()
+taux_interet = taux_interet.ffill()
+xfor_price = xfor_price.ffill()
+xfor_ret = xfor_ret.ffill()
 
 
 # MERGED DATAFRAMES

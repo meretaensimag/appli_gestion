@@ -1,6 +1,10 @@
 file(REMOVE_RECURSE
+  "CMakeFiles/fx_hedging.dir/ChoreliaOption.cpp.o"
+  "CMakeFiles/fx_hedging.dir/ChoreliaOption.cpp.o.d"
   "CMakeFiles/fx_hedging.dir/json_reader.cpp.o"
   "CMakeFiles/fx_hedging.dir/json_reader.cpp.o.d"
+  "CMakeFiles/fx_hedging.dir/python_bindings.cpp.o"
+  "CMakeFiles/fx_hedging.dir/python_bindings.cpp.o.d"
   "libfx_hedging.a"
   "libfx_hedging.pdb"
 )

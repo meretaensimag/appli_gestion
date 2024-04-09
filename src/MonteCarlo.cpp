@@ -77,6 +77,7 @@ void MonteCarlo::priceAndDelta(PnlMat *pastData, int currentEvalDate, double &co
 //        delta_squared_value = GET(deltaVariances, deltaIndex) * SquareDeltaConst / (spotPrice * spotPrice) - (singleDelta / discountFactor) * (singleDelta / discountFactor);
 //        LET(deltaVariances, deltaIndex) = std::sqrt(std::abs(delta_squared_value / nbSamples_));
     }
+    pnl_mat_print(simulatedPath);
     pnl_mat_free(&simulatedPath);
 }
 

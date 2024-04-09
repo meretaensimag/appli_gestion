@@ -6,6 +6,4 @@ Alan
 
 commande hedging 
 
-./ hedging_portfolio /user/4/mereta/3A/appli_gestion/appli_gestion/data/quanto_exchange_params.json
-/user/4/mereta/3A/appli_gestion/appli_gestion/data/quanto_exchange_market.csv
-/user/4/mereta/3A/appli_gestion/appli_gestion/output/call_currency_portfolio.json
+./hedging_portfolio ../../front-python/output.json /../../front-python/output.csv ../../front-python/sortie.json

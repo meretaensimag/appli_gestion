@@ -1,4 +1,4 @@
-# Install script for directory: /user/8/marecp/Gestion-Produit-structure/appli_gestion/src
+# Install script for directory: /user/4/.base/mereta/home/3A/appli_gestion/appli_gestion/src
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -50,5 +50,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/user/8/marecp/Gestion-Produit-structure/appli_gestion/src/build/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/user/4/.base/mereta/home/3A/appli_gestion/appli_gestion/src/build/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")
