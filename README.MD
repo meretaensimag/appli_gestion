@@ -20,7 +20,7 @@ mkdir build
 cd build
 cmake -DCMAKE_PREFIX_PATH=/matieres/5MMPCPD/pnl ..
 ```
-(*Remarque*: Remplacez `/matieres/5MMPCPD/pnl` par le chemin correspondant au fichier `pnlconfig.cmake si vous voulez executer ce programme sur une autre machine`.)
+(*Remarque*: Remplacez `/matieres/5MMPCPD/pnl` par le chemin correspondant au fichier `pnlconfig.cmake` si vous voulez executer ce programme sur une autre machine.)
 
 3. Ensuite, exécutez la commande `make`.
 
