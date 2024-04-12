@@ -27,18 +27,15 @@ void MonteCarlo::priceAndDelta(PnlMat *pastData, int currentEvalDate, double &co
     //boucle sur les simulations
     for (int sampleIndex = 0; sampleIndex < nbSamples_; sampleIndex++) {
         model_ -> sample(pastData, simulatedPath, currentEvalDate, rng_);
-        //pnl_mat_print(simulatedPath);
-        assetPayoff = option_->payoff(currentEvalDate, simulatedPath);
-        //std::cout << "Le simulatedPath est --------------------------------" << currentEvalDate << std::endl;
-        //pnl_mat_print(simulatedPath);
+        assetPayoff = option_->payoff(simulatedPath);
         totalPayoff += assetPayoff;
         totalPayoffSquared += assetPayoff * assetPayoff;
         //boucle sur les actifs
         for (int assetIndex = 0; assetIndex < nbAssets_; assetIndex++) {
             model_->shiftAsset(simulatedPath, simulatedPath, assetIndex, fdStep_, currentEvalDate);
-            assetPayoffUp = option_->payoff(currentEvalDate, simulatedPath);
+            assetPayoffUp = option_->payoff(simulatedPath);
             model_->shiftAsset(simulatedPath, simulatedPath, assetIndex, (-2 * fdStep_) / (1 + fdStep_), currentEvalDate);
-            assetPayoffDown = option_->payoff(currentEvalDate, simulatedPath);
+            assetPayoffDown = option_->payoff(simulatedPath);
             //calcul du delta qui est la dérivée partielle du prix de l'option par rapport au prix de l'actif
             singleDelta = assetPayoffUp - assetPayoffDown;
             model_->shiftAsset(simulatedPath, simulatedPath, assetIndex, fdStep_ / (1-fdStep_), currentEvalDate);
@@ -50,14 +47,13 @@ void MonteCarlo::priceAndDelta(PnlMat *pastData, int currentEvalDate, double &co
     //calcul du prix de l'option
     //int numberOfDaysInOneYear = option_->numberOfDaysInOneYear_;
     //double maturityInYears = option_->maturity_ / (double) numberOfDaysInOneYear;
-    int numberOfDaysInOneYear = 365;
+    int numberOfDaysInOneYear = 252;
     double maturityInYears = model_->timeGrid_->maturity_ / (double) numberOfDaysInOneYear;
    
     double domesticInterestRate = option_->domesticInterestRate_;
     double currentEvalDateInYears = currentEvalDate/(double) numberOfDaysInOneYear;
     double discountFactor = exp(-domesticInterestRate * (maturityInYears - currentEvalDateInYears));
     totalPayoff /= nbSamples_;
-    //computedPrice = discountFactor * totalPayoff;
     computedPrice = discountFactor * totalPayoff;
     priceVariance = std::sqrt(std::abs(totalPayoffSquared / nbSamples_ - computedPrice * computedPrice) / nbSamples_);
     computedPrice = discountFactor * computedPrice;
@@ -81,5 +77,12 @@ void MonteCarlo::priceAndDelta(PnlMat *pastData, int currentEvalDate, double &co
 //        delta_squared_value = GET(deltaVariances, deltaIndex) * SquareDeltaConst / (spotPrice * spotPrice) - (singleDelta / discountFactor) * (singleDelta / discountFactor);
 //        LET(deltaVariances, deltaIndex) = std::sqrt(std::abs(delta_squared_value / nbSamples_));
     }
+    pnl_mat_print(simulatedPath);
     pnl_mat_free(&simulatedPath);
+}
+
+MonteCarlo::~MonteCarlo(){
+    pnl_rng_free(&rng_);
+    delete(option_);
+    delete(model_);
 }

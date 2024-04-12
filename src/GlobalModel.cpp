@@ -2,7 +2,7 @@
 #include "pnl/pnl_matrix.h"
 #include "pnl/pnl_random.h"
 using namespace std;
-
+#include <iostream>
 
 vector<RiskyAsset> GlobalModel::createRiskyVector(vector<Currency> currencies, vector<Asset> assets){
     vector<RiskyAsset> riskyVector;
@@ -56,18 +56,18 @@ void GlobalModel::sample(PnlMat* past, PnlMat* path, int t, PnlRng* rng) {
 
     pnl_mat_get_row(spot_,past, past->m-1);
 
-    double dt = (double)(dates.at(startingIndex)-t)/(double)365;
+    double dt = (double)(dates.at(startingIndex)-t)/(double)252;
     pnl_vect_rng_normal(G_, assets_.size() + currencies_.size(), rng);
     stepSimulation(spot_, dt, size, G_);
 
-    if(timeGrid_->isMonitoringDate(t) && t!= timeGrid_->maturity_){
+    if(timeGrid_->isMonitoringDate(t)){
         startingIndex = past->m;
     }
     
     pnl_mat_set_row(path, spot_, startingIndex);
 
     for (int index=startingIndex+1; index <dates.size(); index++) {
-        dt = (double)(dates.at(index)-dates.at(index-1))/(double)365;
+        dt = (double)(dates.at(index)-dates.at(index-1))/(double)252;
         pnl_vect_rng_normal(G_, assets_.size() + currencies_.size(), rng);
         stepSimulation(spot_, dt, size, G_);
         pnl_mat_set_row(path, spot_, index);
@@ -77,32 +77,34 @@ void GlobalModel ::stepSimulation(PnlVect *current_spot, double dt, int size, Pn
     double prevValue;
     double currValue;
     for (int d = 0; d < size; d++) {
+        
         vol_ = riskyAssets_.at(d).volatilityVector_;
+        
         prevValue = GET(current_spot, d);
         double random_term = pnl_vect_scalar_prod(vol_, G);
+        
         currValue = prevValue * exp((riskyAssets_.at(d ).drift_ - pnl_vect_scalar_prod(vol_, vol_)*0.5)* dt + sqrt(dt) * random_term);
         pnl_vect_set(current_spot, d, currValue);
+        // std::cout << "exponentielle" << std::endl;
+        // std::cout << exp((riskyAssets_.at(d ).drift_ - pnl_vect_scalar_prod(vol_, vol_)*0.5)* dt + sqrt(dt) * random_term) << std::endl;
+        // std::cout << "(riskyAssets_.at(d ).drift_ - pnl_vect_scalar_prod(vol_, vol_)*0.5)* dt + sqrt(dt) * random_term " << std::endl;
+        // std::cout << (riskyAssets_.at(d ).drift_ - pnl_vect_scalar_prod(vol_, vol_)*0.5)* dt + sqrt(dt) * random_term << std::endl;
+        // std::cout << "dt " << std::endl;
+        // std::cout << dt << std::endl;
+        // std::cout << "riskyAssets_.at(d ).drift_*dt " << std::endl;
+        // std::cout << riskyAssets_.at(d ).drift_*dt << std::endl;
+        // std::cout << "pnl_vect_scalar_prod(vol_, vol_)*0.5*dt " << std::endl;
+        // std::cout << pnl_vect_scalar_prod(vol_, vol_)*0.5*dt << std::endl;
+        // std::cout << "sqrt(dt) * random_term" << std::endl;
+        // std::cout << sqrt(dt) * random_term << std::endl;
+        // std::cout << "random term" << std::endl;
+        // std::cout << random_term << std::endl;
     }
 }
 
 
 void GlobalModel::shiftAsset(PnlMat *shift_path, const PnlMat *path, int d, double fdStep, double currentDate) {
-//    int startingIndex=1;
-//    pnl_mat_clone(shift_path, path);
-//    int size = timeGrid_->dateList_.size();
-//    std::vector<int> dates = timeGrid_->dateList_;
-//    int nextIndex;
-//    if(timeGrid_->isMonitoringDate(currentDate)){
-//        nextIndex= startingIndex;
-//    }
-//    else{
-//        nextIndex= startingIndex-1;
-//    }
-//    for (int i = nextIndex; i < path->m; i++) {
-//        MLET(shift_path, i, d) *= 1. + fdStep;
-//    }
-
-    int k = 1;
+    int k = 0;
     int size = timeGrid_->dateList_.size();
     std::vector<int> dates = timeGrid_->dateList_;
     while (k < size ) {
@@ -111,8 +113,7 @@ void GlobalModel::shiftAsset(PnlMat *shift_path, const PnlMat *path, int d, doub
         }
         k += 1;
     }
-    for (int i = k; i < path->m; i++) {
+    for (int i = 1; i < path->m; i++) {
         MLET(shift_path, i, d) *= (1+fdStep);
     }
-
 }

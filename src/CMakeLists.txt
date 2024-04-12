@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.5.1)
-
 project(FXHedging CXX)
+
+# Définir la politique CMP0148
+if(POLICY CMP0148)
+    cmake_policy(SET CMP0148 NEW)
+endif()
 
 # Release or Debug
 if (NOT CMAKE_BUILD_TYPE)
@@ -16,22 +20,20 @@ if(${CMAKE_BUILD_TYPE} STREQUAL "Release")
     add_definitions(-DPNL_RANGE_CHECK_OFF)
 endif()
 
+# Find pybind11
+find_package(pybind11 CONFIG REQUIRED)
+
 # Find nlohmann_json to parse json files
-# Add nlohmann_json::nlohmann_json to target_link_libraries
 find_package(nlohmann_json REQUIRED)
 
-set(fxhedging_hdrs  json_reader.hpp)
-add_library(fx_hedging json_reader.cpp ${fxhedging_hdrs})
-target_link_libraries(fx_hedging ${PNL_LIBRARIES} nlohmann_json::nlohmann_json)
-
-# add_executable(test_fx_hedging test_fx_hedging.cpp)
-# target_link_libraries(test_fx_hedging fx_hedging)
-# pnl_add_postbuild(test_fx_hedging)
-
-
-#add_executable(test_json_reader json_reader.cpp test_json_reader.cpp)
-#target_link_libraries(test_json_reader ${PNL_LIBRARIES} nlohmann_json::nlohmann_json)
-#pnl_add_postbuild(test_json_reader)
+# Headers and sources
+set(fxhedging_hdrs json_reader.hpp
+        ChoreliaOption.cpp
+        python_bindings.cpp)
+add_library(fx_hedging json_reader.cpp ${fxhedging_hdrs}
+        ChoreliaOption.cpp
+        python_bindings.cpp)
+target_link_libraries(fx_hedging PRIVATE ${PNL_LIBRARIES} nlohmann_json::nlohmann_json pybind11::embed)
 
 add_executable(hedging_portfolio
         json_reader.cpp
@@ -48,8 +50,7 @@ add_executable(hedging_portfolio
         Position.cpp
         Portfolio.cpp
         ChoreliaOption.cpp
+        python_bindings.cpp
 )
-target_link_libraries(hedging_portfolio ${PNL_LIBRARIES} nlohmann_json::nlohmann_json)
+target_link_libraries(hedging_portfolio PRIVATE ${PNL_LIBRARIES} nlohmann_json::nlohmann_json pybind11::embed)
 pnl_add_postbuild(hedging_portfolio)
-
-

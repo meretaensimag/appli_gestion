@@ -22,9 +22,11 @@ public:
     std::pair<std::vector<Currency>, std::vector<double>> parseCurrencies();
 
     std::pair<std::vector<Asset>, std::vector<int>> parseAssets(const std::vector<Currency>& currencies);
-    void parsePast(PnlMat* marketData, TimeGrid *timeGrid, const std::vector<int>& assetCurrencyMapping, const std::vector<double>& foreignInterestRates);
+    PnlMat *parsePast(PnlMat* marketData, TimeGrid *timeGrid, const std::vector<int>& assetCurrencyMapping, const std::vector<double>& foreignInterestRates);
 
     double parseDom(std::vector<Currency> currencies);
+
+    double getCurrentEvalDate();
 
     void computeCorMatrix();
 
