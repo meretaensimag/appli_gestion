@@ -5,7 +5,7 @@
 - Pierre-Yves Marec
 - Alan Meret
 
-**Projet numéro 11**: Chroelia
+**Projet numéro 11**: Chorelia
 
 ## Comment lancer le projet:
 
@@ -14,13 +14,13 @@ Pour exécuter le projet, il est nécessaire de compiler d'abord la partie du co
 
 1. Naviguez vers le dossier `src`.
 2. Exécutez les commandes suivantes dans le terminal:
-
+(Cette commande est celle pour les ordinateurs de l'Ensimag)
 ```bash
 mkdir build
 cd build
 cmake -DCMAKE_PREFIX_PATH=/matieres/5MMPCPD/pnl ..
 ```
-(*Remarque*: Remplacez `/matieres/5MMPCPD/pnl` par le chemin correspondant au fichier `pnlconfig.cmake`.)
+(*Remarque*: Remplacez `/matieres/5MMPCPD/pnl` par le chemin correspondant au fichier `pnlconfig.cmake si vous voulez executer ce programme sur une autre machine`.)
 
 3. Ensuite, exécutez la commande `make`.
 
