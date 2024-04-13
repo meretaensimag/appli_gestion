@@ -234,7 +234,7 @@ def is_dividend_date(date, option_number):
 def initialisation(option_number,rep):
     if os.path.exists('sortie.json') and os.stat('sortie.json').st_size == 0:
         print("initialisation du portefeuille")
-        int_date = int(daily_dates_mapper(get_saved_option_dates(option_number)[0]))+1
+        int_date = int(daily_dates_mapper(get_saved_option_dates(option_number)[0]))
         pricing_params = generate_output_json(int_date, int(option_number),1)
         command = ["./hedging_portfolio", "../../front-python/output.json", "../../front-python/sortie.json"]
         subprocess.run(command, cwd="../src/build")

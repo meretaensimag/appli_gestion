@@ -20,8 +20,6 @@ if(${CMAKE_BUILD_TYPE} STREQUAL "Release")
     add_definitions(-DPNL_RANGE_CHECK_OFF)
 endif()
 
-# Find pybind11
-find_package(pybind11 CONFIG REQUIRED)
 
 # Find nlohmann_json to parse json files
 find_package(nlohmann_json REQUIRED)
@@ -29,11 +27,11 @@ find_package(nlohmann_json REQUIRED)
 # Headers and sources
 set(fxhedging_hdrs json_reader.hpp
         ChoreliaOption.cpp
-        python_bindings.cpp)
+        )
 add_library(fx_hedging json_reader.cpp ${fxhedging_hdrs}
         ChoreliaOption.cpp
-        python_bindings.cpp)
-target_link_libraries(fx_hedging PRIVATE ${PNL_LIBRARIES} nlohmann_json::nlohmann_json pybind11::embed)
+        )
+target_link_libraries(fx_hedging PRIVATE ${PNL_LIBRARIES} nlohmann_json::nlohmann_json)
 
 add_executable(hedging_portfolio
         json_reader.cpp
@@ -50,7 +48,6 @@ add_executable(hedging_portfolio
         Position.cpp
         Portfolio.cpp
         ChoreliaOption.cpp
-        python_bindings.cpp
 )
-target_link_libraries(hedging_portfolio PRIVATE ${PNL_LIBRARIES} nlohmann_json::nlohmann_json pybind11::embed)
+target_link_libraries(hedging_portfolio PRIVATE ${PNL_LIBRARIES} nlohmann_json::nlohmann_json)
 pnl_add_postbuild(hedging_portfolio)

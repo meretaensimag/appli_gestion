@@ -14,7 +14,7 @@ public:
     double domesticInterestRate_;
     double referential_amount_;
 
-    virtual double payoff(const PnlMat *path) = 0;
+    virtual double payoff(int currentDate, const PnlMat *path) = 0;
     virtual ~Option() = default;
 };
 
@@ -25,8 +25,8 @@ private:
 public:
     ChoreliaOption (std::vector<int> assetCurrencyMapping,std::vector<double> foreignInterestRates,TimeGrid *timeGrid, double domesticInterestRate, double referential_amount);
 
-    static double adjust_rate(double rate);
-    static double calculate_average_rate(const PnlMat *path, int index);
-    double payoff(const PnlMat *path) override;
+    double adjust_rate(double rate);
+    double calculate_average_rate(PnlVect *rates, const PnlMat *path, int index);
+    double payoff(int currentDate, const PnlMat *path) override;
     ~ChoreliaOption() override= default;
 };

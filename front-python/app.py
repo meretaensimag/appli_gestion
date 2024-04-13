@@ -9,11 +9,11 @@ import json
 import dataframes as dataf
 from datetime import datetime
 from datetime import timedelta
-
+from dash.exceptions import PreventUpdate
 # Définir les feuilles de style externes
 external_stylesheets = ['https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css', './assets/styles.css']
 
-
+date_format = '%Y-%m-%dT%H:%M:%S'
 Listposition = []
 OPTIONNUMBER = 1
 DATE = datetime(2000,7,6)
@@ -31,29 +31,22 @@ indices = ['EUROSTOXX50', 'FTSE100', 'MIB', 'NIKKEI', 'SENSEX']
 
 
 
+
 @app.callback(
     Output('additional-graph-container', 'children'),
     [Input('afficher-nouvelles-courbes-button', 'n_clicks')],
-    [Input('date-picker-range', 'start_date'),
-     Input('date-picker-range', 'end_date')]
+    [State('single-date-picker', 'date')]
 )
-def afficher_nouvelles_courbes(n_clicks, start_date):
+def afficher_nouvelles_courbes(n_clicks, date):
     if n_clicks:
-
         # Convertir les dates en objets datetime
-        if OPTIONNUMBER == 1:
-            end_date = dataf._first_option_dates[-1]
-        elif OPTIONNUMBER == 2:
-            end_date = dataf._second_option_dates[-1]
-        elif OPTIONNUMBER == 3:
-            end_date = dataf._third_option_dates[-1]
-        else:
-            end_date = datetime.today()
-        print(start_date)
-        print(end_date)
-
+        if n_clicks:
+            end_date  = date
+            start_date = df['Date'][0]
         # Filtrer les données en fonction des dates sélectionnées
         filtered_df = df[(df['Date'] >= start_date) & (df['Date'] <= end_date)]
+        # Filtrer les données jusqu'à la date actuelle
+        filtered_df = filtered_df[filtered_df['Date'] <= DATE]
 
         # Créer une trace pour les indices spécifiés
         traces = []
@@ -72,13 +65,14 @@ def afficher_nouvelles_courbes(n_clicks, start_date):
             figure={
                 'data': traces,
                 'layout': {
-                    'title': 'Courbes des indices',
+                    'title': 'Courbes des indices jusqu\'à la date actuelle',
                     'xaxis': {'title': 'Date'},
                     'yaxis': {'title': 'Valeur'}
                 }
             }
         )
 
+    
 def gestion_accueil_layout():
     return html.Div(children=[
         navbar_layout(),  # Ajout de la barre de navigation
@@ -87,9 +81,12 @@ def gestion_accueil_layout():
             
             html.Button('Réinitialiser', id='reset-button', className='btn btn-primary mt-3',n_clicks=0),
             html.Button('Prévisualisation', id='preview-button', className='btn btn-secondary mt-3', n_clicks=0),
-            html.Button('Incrémenter la date', id='increment-date-button', className='btn btn-primary mt-3',n_clicks=0),
             html.Button('Afficher Nouvelles Courbes', id='afficher-nouvelles-courbes-button', className='btn btn-primary mt-3'),
+            html.Button('Incrémenter la date d\'un jour', id='increment-date-button', className='btn btn-primary mt-3',n_clicks=0),
+            html.Button('Incrémenter la date d\'une semaine', id='increment-week-button', className='btn btn-primary mt-3'),
+            html.Button('Incrémenter la date d\'un mois', id='increment-month-button', className='btn btn-primary mt-3'),
 
+            html.Button('Incrémenter la date d\'un an', id='increment-year-button', className='btn btn-primary mt-3'),
             html.Div(id="reset-output"),
             
             # Ajouter un autre formulaire pour choisir une seule date
@@ -141,7 +138,7 @@ def display_table(n_clicks):
             currentpos = dp.pay_dividend_and_rebalance(stringdate,OPTIONNUMBER,previous_rep)
             Listposition.append(currentpos)
             print(currentpos)
-            # Charger les données à partir de sortie.json
+                # Charger les données à partir de sortie.json
             assets = ["EUROSTOXX50", "MIB", "FTSE100", "NIKKEI", "SENSEX", "RGBP", "RJPY", "RINR"]
             # Extraire les données nécessaires
             date = currentpos['date']
@@ -279,28 +276,65 @@ def navbar_layout():
             html.A('Gestion de Portefeuille', href='/gestion', className='navbar-brand'),
         ], style={'marginBottom': 0, 'marginTop': 0, 'paddingBottom': 0, 'paddingTop': 0})
 
+
 @app.callback(
     Output('date-value', 'children'),
-    [Input('single-date-picker', 'date')]
+    [Input('single-date-picker', 'date')]   
 )
 def update_date_value(date):
     global DATE
-    DATE = datetime.strptime(date, '%Y-%m-%d')
-    return DATE
+    global OPTIONNUMBER
+    if date:
+        date_object = datetime.strptime(date, date_format)
+        DATE = date_object
+        return DATE
+
 
 @app.callback(
     Output('single-date-picker', 'date'),
-    [Input('option-dropdown', 'value')]
+    [Input('option-dropdown', 'value'),
+     Input('increment-date-button', 'n_clicks'),
+     Input('increment-week-button', 'n_clicks'),
+     Input('increment-month-button', 'n_clicks'),
+     Input('increment-year-button', 'n_clicks'),
+     Input('reset-button', 'n_clicks')]
 )
-def update_default_date(option_number):
-    if option_number == 1:
-        return datetime.strptime(dataf._first_option_dates[0], '%d-%m-%Y')  # Utiliser la première date d'option si option number vaut 1
-    elif option_number == 2:
-        return datetime.strptime(dataf._second_option_dates[0], '%d-%m-%Y')   # Utiliser la deuxième date d'option si option number vaut 2
-    elif option_number == 3:
-        return datetime.strptime(dataf._third_option_dates[0], '%d-%m-%Y')   # Utiliser la troisième date d'option si option number vaut 3
+def update_default_date(option_number, n_clicks, n_clicks_week, n_clicks_month, n_clicks_year, n_clicks_output):
+    global DATE
+    ctx = dash.callback_context
+
+    if not ctx.triggered:
+        button_id = None
     else:
-        return datetime.today()
+        button_id = ctx.triggered[0]['prop_id'].split('.')[0]
+
+    if button_id == 'increment-date-button':
+        print("jour")
+        DATE += timedelta(days=1)
+        return DATE.strftime(date_format)
+    elif button_id == 'increment-week-button':
+
+        DATE += timedelta(weeks=1)
+    
+        return DATE.strftime(date_format)
+    elif button_id == 'increment-month-button':
+        print("mois")
+
+        DATE += timedelta(days=30)
+        return DATE.strftime(date_format)
+    elif button_id == 'increment-year-button':
+        DATE += timedelta(days=365)
+        return DATE.strftime(date_format)
+    elif button_id == 'reset-button':
+        DATE = datetime(2000, 7, 5)
+        return DATE.strftime(date_format)
+    elif option_number == 1:
+        return datetime.strptime(dataf._first_option_dates[0], '%d-%m-%Y')
+    elif option_number == 2:
+        return datetime.strptime(dataf._second_option_dates[0], '%d-%m-%Y')
+    elif option_number == 3:
+        return datetime.strptime(dataf._third_option_dates[0], '%d-%m-%Y')
+        
 
 # Définir la mise en page de l'application
 app.layout = html.Div([
@@ -317,6 +351,8 @@ def update_option_number(value):
     OPTIONNUMBER = value
     return value
 
+
+
 # Callback pour afficher la page en fonction de l'URL
 @app.callback(Output('page-content', 'children'),
               [Input('url', 'pathname')])
@@ -328,6 +364,8 @@ def display_page(pathname):
     else:
         return accueil_layout()  # Par défaut, afficher la page d'accueil
 
+
+        
 # Démarrer le serveur
 if __name__ == '__main__':
     app.run_server(debug=False)
