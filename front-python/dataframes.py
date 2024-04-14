@@ -116,7 +116,7 @@ daily_spots = pd.concat([close_price, xfor_price], axis=1)
 desired_order = ['EUROSTOXX50', 'MIB', 'FTSE100', 'NIKKEI', 'SENSEX', 'XGBP', 'XJPY', 'XINR']
 
 # Réordonner les colonnes du DataFrame 'df'
-reordered_df = daily_spots[desired_order]
+df_reord = daily_spots[desired_order]
 
 arithmetic_daily_rentas = pd.concat([close_ret, xfor_ret], axis=1)
 log_daily_rentas = np.log(arithmetic_daily_rentas + 1)
@@ -134,15 +134,14 @@ def daily_dates_mapper(string_date : str) -> int:
     Fonction de mapping des dates
     :return: la int date correspondante
     """
-    int_date = _daily_dates_mapper.get(string_date)
-    if int_date is None:
-        real_date = datetime.strptime(string_date, '%d-%m-%Y').date()
+    date_entier = _daily_dates_mapper.get(string_date)
+    if date_entier is None:
+        date_effective = datetime.strptime(string_date, '%d-%m-%Y').date()
         one_day = timedelta(days=1)
-        while int_date is None:
-            #print("HELLO")
-            real_date -= one_day
-            int_date = _daily_dates_mapper.get(real_date.strftime('%d-%m-%Y'))
-    return int_date
+        while date_entier is None:
+            date_effective -= one_day
+            date_entier = _daily_dates_mapper.get(date_effective.strftime('%d-%m-%Y'))
+    return date_entier
 
 
 def reverse_dates_mapper(int_date):
@@ -150,16 +149,13 @@ def reverse_dates_mapper(int_date):
 
 
 
-def time_from_january_the_first(int_date : int):
+def nb_jour_depuis_janvier(int_date : int):
     """
     Retourne le nombre de jour entre int_date et le 1er janvier de la meme année.
     """
     spot_date = _reverse_dates_mapper[int_date]
     t = datetime.strptime(spot_date, '%d-%m-%Y')
     return t.timetuple().tm_yday
-
-
-week_duration = 5
 
 
 # GENERIC PARAMETERS
@@ -239,28 +235,20 @@ _generic_test_parameters = {
 }
 
 
-def get_default_option_description():
-    """
-    :return: A template of the description of an option
-    """
-    return dict(_default_option_description)
-
-
-def get_test_parameters():
+def get_test_parametres():
     """
     :return: a template of the description of a test_parameter (pricer input)
     """
-    parameters = dict(_generic_test_parameters)
-    return parameters
+    parametres = dict(_generic_test_parameters)
+    return parametres
 
 
 def get_preload_option_description(option_number):
-    parameters = dict(_default_option_description)
-    dates = get_saved_option_dates(option_number)
-    parameters[MaturityInDays] = dates[-1]
-    parameters[FixingDatesInDays][DatesInDays] = dates
-    return parameters
+    parametres = dict(_default_option_description)
+    list_date = get_saved_option_dates(option_number)
+    parametres[MaturityInDays] = list_date[-1]
+    parametres[FixingDatesInDays][DatesInDays] = list_date
+    return parametres
 
 
-print("OK in DataFrames")
 

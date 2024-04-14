@@ -257,7 +257,7 @@ def display_table(n_clicks):
                 previous_rep = Listposition[len_previousrep-1]
 
             print(stringdate)
-            currentpos = dp.pay_dividend_and_rebalance(stringdate,OPTIONNUMBER,previous_rep)
+            currentpos = dp.paye_dividende_et_rebalance(stringdate,OPTIONNUMBER,previous_rep)
             Listposition.append(currentpos)
             print(currentpos)
                 # Charger les données à partir de sortie.json

@@ -69,12 +69,9 @@ int main(int argc, char *argv[]) {
 
     
     PnlMat* marketData;
-    //pnl_mat_print(marketData);
     parser.j.at("Past").get_to(marketData);
     parser.parsePast(marketData, timegrid , assetCurrencyMapping, foreignInterestRates);
-    //std::cout << "dans main " << std::endl;
 
-    //pnl_mat_print(marketData);
     double price = 0.0;
     double priceStdDev = 0.0;
     int size = marketData->n;
@@ -84,9 +81,6 @@ int main(int argc, char *argv[]) {
     double initialPrice = 0.0;
     double initPriceStdDev = 0.0;
     PnlVect* initSpots = pnl_vect_create(size);
-    //pnl_mat_get_row(initSpots, marketData, 0);
-    //pnl_mat_print(marketData);
-    //PnlMat* initPastData = fillPast(hedgingPast, initSpots, 0, timegrid);
     double MathDate =  parser.j.at("MathDate").get<int>();
     hedgingPortfolio.monteCarlo.priceAndDelta(marketData, MathDate, initialPrice, initPriceStdDev, initDeltas, deltasStdDev);
     double portfolio = initialPrice;
@@ -95,13 +89,7 @@ int main(int argc, char *argv[]) {
     
     hedgingPortfolio.positions.push_back(position);
 
-    //Position position2 = Position( MathDate + 1, initialPrice, initPriceStdDev, initDeltas, deltasStdDev, portfolio);
-    //hedgingPortfolio.positions.push_back(position2);
-
     double Dom_riskfree  = initialPrice - pnl_vect_scalar_prod(initDeltas,initSpots);
-    // std::cout << Dom_riskfree << std::endl;
-    // std::cout << initialPrice << std::endl;
-    // std::cout << pnl_vect_scalar_prod(initDeltas,initSpots) << std::endl;
 
 
     
@@ -118,7 +106,6 @@ int main(int argc, char *argv[]) {
     pnl_vect_free(&initDeltas);
     pnl_vect_free(&deltasStdDev);
     pnl_vect_free(&initSpots);
-    //pnl_mat_free(&initPastData);
     pnl_mat_free(&hedgingPast);
     pnl_mat_free(&marketData);
     return 0;

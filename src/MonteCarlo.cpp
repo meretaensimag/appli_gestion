@@ -27,10 +27,7 @@ void MonteCarlo::priceAndDelta(PnlMat *pastData, int currentEvalDate, double &co
     //boucle sur les simulations
     for (int sampleIndex = 0; sampleIndex < nbSamples_; sampleIndex++) {
         model_ -> sample(pastData, simulatedPath, currentEvalDate, rng_);
-        //pnl_mat_print(simulatedPath);
         assetPayoff = option_->payoff(currentEvalDate, simulatedPath);
-        //std::cout << "Le simulatedPath est --------------------------------" << currentEvalDate << std::endl;
-        //pnl_mat_print(simulatedPath);
         totalPayoff += assetPayoff;
         totalPayoffSquared += assetPayoff * assetPayoff;
         //boucle sur les actifs
