@@ -2,6 +2,7 @@ import dash
 from dash import dcc, html, Input, Output, State
 import pandas as pd
 import plotly.graph_objs as go
+import dash_bootstrap_components as dbc  # Importer Dash Bootstrap Components
 import subprocess
 import data_provider as dp
 import dash_table
@@ -16,12 +17,13 @@ external_stylesheets = ['https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/
 date_format = '%Y-%m-%dT%H:%M:%S'
 Listposition = []
 OPTIONNUMBER = 1
-DATE = datetime(2000,7,6)
-# Créer l'application Dash      
+DATE = datetime(2000, 7, 6)
+
+# Créer l'application Dash
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
 # Charger les données depuis le fichier CSV
-df = pd.read_excel('../data/ClosePrice.xlsx') 
+df = pd.read_excel('../data/ClosePrice.xlsx')
 
 # Convertir les colonnes de dates en objets datetime
 df['Date'] = pd.to_datetime(df['Date'])
@@ -30,6 +32,15 @@ df['Date'] = pd.to_datetime(df['Date'])
 indices = ['EUROSTOXX50', 'FTSE100', 'MIB', 'NIKKEI', 'SENSEX']
 
 
+@app.callback(
+    Output('additional-graph-popup', 'is_open'),
+    [Input('afficher-nouvelles-courbes-button', 'n_clicks')],
+    [State('single-date-picker', 'date')]
+)
+def toggle_additional_graph_popup(n_clicks, date):
+    if n_clicks:
+        return True
+    return False
 
 
 @app.callback(
@@ -41,7 +52,7 @@ def afficher_nouvelles_courbes(n_clicks, date):
     if n_clicks:
         # Convertir les dates en objets datetime
         if n_clicks:
-            end_date  = date
+            end_date = date
             start_date = df['Date'][0]
         # Filtrer les données en fonction des dates sélectionnées
         filtered_df = df[(df['Date'] >= start_date) & (df['Date'] <= end_date)]
@@ -61,7 +72,7 @@ def afficher_nouvelles_courbes(n_clicks, date):
                 traces.append(trace)
 
         return dcc.Graph(
-            id='graph',
+            id='additional-graph',
             figure={
                 'data': traces,
                 'layout': {
@@ -72,23 +83,23 @@ def afficher_nouvelles_courbes(n_clicks, date):
             }
         )
 
-    
+
 def gestion_accueil_layout():
     return html.Div(children=[
         navbar_layout(),  # Ajout de la barre de navigation
         html.Div(children=[
             html.H1(children='Page de Gestion de Portefeuille', className='mt-3'),
-            
-            html.Button('Réinitialiser', id='reset-button', className='btn btn-primary mt-3',n_clicks=0),
+
+            html.Button('Réinitialiser', id='reset-button', className='btn btn-primary mt-3', n_clicks=0),
             html.Button('Prévisualisation', id='preview-button', className='btn btn-secondary mt-3', n_clicks=0),
             html.Button('Afficher Nouvelles Courbes', id='afficher-nouvelles-courbes-button', className='btn btn-primary mt-3'),
-            html.Button('Incrémenter la date d\'un jour', id='increment-date-button', className='btn btn-primary mt-3',n_clicks=0),
+            html.Button('Incrémenter la date d\'un jour', id='increment-date-button', className='btn btn-primary mt-3', n_clicks=0),
             html.Button('Incrémenter la date d\'une semaine', id='increment-week-button', className='btn btn-primary mt-3'),
             html.Button('Incrémenter la date d\'un mois', id='increment-month-button', className='btn btn-primary mt-3'),
 
             html.Button('Incrémenter la date d\'un an', id='increment-year-button', className='btn btn-primary mt-3'),
             html.Div(id="reset-output"),
-            
+
             # Ajouter un autre formulaire pour choisir une seule date
             html.Div([
                 html.Label("Choisir l'élément option :"),
@@ -102,23 +113,134 @@ def gestion_accueil_layout():
                     value=OPTIONNUMBER,
                 )
             ], className='mt-3'),
-            
+
             html.Div([
                 dcc.DatePickerSingle(
-                    id='single-date-picker', 
+                    id='single-date-picker',
                     date=datetime.today(),
                     display_format='DD/MM/YYYY',
                     className='mt-3'
                 ),
             ]),
-            
+
             html.Div(id='date-value'),
             html.Div(id='graph-container'),  # Div pour afficher les courbes (initiallement vide)
-            html.Div(id='additional-graph-container'),  # Div pour afficher le nouveau graphique
             html.Div(id='table-container')  # Ajouter la DataTable pour afficher les valeurs du fichier sortie.json
+        ], className='content'),
+
+        # Popup pour afficher les nouvelles courbes
+        dbc.Modal(
+            [
+                dbc.ModalHeader("Nouvelles Courbes"),
+                dbc.ModalBody(html.Div(id='additional-graph-container')),
+            
+            ],
+            id="additional-graph-popup",
+            size="xl",
+            is_open=False,
+        ),
+    ])
+
+
+
+
+# Callback pour réinitialiser le contenu du fichier de sortie
+@app.callback(
+    Output('reset-output', 'children'),
+    [Input('reset-button', 'n_clicks')]
+)
+def reset_output_file(n_clicks):
+
+    if n_clicks:
+        try:
+            # Supprimer le contenu du fichier de sortie
+            with open('./sortie.json', 'w') as f:
+                f.write('')
+
+            Listposition.clear()  # Réinitialiser les données des positions
+            
+            # Rafraîchir la page en mettant à jour l'URL
+            return dcc.Location(pathname='/gestion', id='dummy-location')
+        except Exception as e:
+            return str(e)
+# Définir la mise en page de l'accueil
+def accueil_layout():
+    return html.Div(children=[
+        navbar_layout(),
+        html.Div(children=[
+            html.H1(children='Application de Gestion de Portefeuille: Produit 11 Chorélia', className='mt-3'),
+            html.Div(children='''
+                Alan Méret, Nada Labzae, Pierre-Yves Marec
+            ''', className='description'), 
+            html.Div(id='output-container-button', className='mt-3')
         ], className='content')
     ])
 
+# Définir la barre de navigation commune
+def navbar_layout():
+    return html.Nav(className='navbar navbar-expand-lg navbar-light bg-light', children=[
+            html.A('Accueil', href='/accueil', className='navbar-brand'),
+            html.A('Gestion de Portefeuille', href='/gestion', className='navbar-brand'),
+        ], style={'marginBottom': 0, 'marginTop': 0, 'paddingBottom': 0, 'paddingTop': 0})
+
+
+@app.callback(
+    Output('date-value', 'children'),
+    [Input('single-date-picker', 'date')]   
+)
+def update_date_value(date):
+    global DATE
+    global OPTIONNUMBER
+    if date:
+        date_object = datetime.strptime(date, date_format)
+        DATE = date_object
+
+
+@app.callback(
+    Output('single-date-picker', 'date'),
+    [Input('option-dropdown', 'value'),
+     Input('increment-date-button', 'n_clicks'),
+     Input('increment-week-button', 'n_clicks'),
+     Input('increment-month-button', 'n_clicks'),
+     Input('increment-year-button', 'n_clicks'),
+     Input('reset-button', 'n_clicks')]
+)
+def update_default_date(option_number, n_clicks, n_clicks_week, n_clicks_month, n_clicks_year, n_clicks_output):
+    global DATE
+    ctx = dash.callback_context
+
+    if not ctx.triggered:
+        button_id = None
+    else:
+        button_id = ctx.triggered[0]['prop_id'].split('.')[0]
+
+    if button_id == 'increment-date-button':
+        print("jour")
+        DATE += timedelta(days=1)
+        return DATE.strftime(date_format)
+    elif button_id == 'increment-week-button':
+
+        DATE += timedelta(weeks=1)
+    
+        return DATE.strftime(date_format)
+    elif button_id == 'increment-month-button':
+        print("mois")
+
+        DATE += timedelta(days=30)
+        return DATE.strftime(date_format)
+    elif button_id == 'increment-year-button':
+        DATE += timedelta(days=365)
+        return DATE.strftime(date_format)
+    elif button_id == 'reset-button':
+        DATE = datetime(2000, 7, 5)
+        return DATE.strftime(date_format)
+    elif option_number == 1:
+        return datetime.strptime(dataf._first_option_dates[0], '%d-%m-%Y')
+    elif option_number == 2:
+        return datetime.strptime(dataf._second_option_dates[0], '%d-%m-%Y')
+    elif option_number == 3:
+        return datetime.strptime(dataf._third_option_dates[0], '%d-%m-%Y')
+        
 @app.callback(
     Output('table-container', 'children'),
     [Input('preview-button', 'n_clicks')]
@@ -233,108 +355,6 @@ def display_table(n_clicks):
             return "Le fichier sortie.json ou output.json n'a pas été trouvé."
         except Exception as e:
             return str(e)
-
-
-
-
-# Callback pour réinitialiser le contenu du fichier de sortie
-@app.callback(
-    Output('reset-output', 'children'),
-    [Input('reset-button', 'n_clicks')]
-)
-def reset_output_file(n_clicks):
-
-    if n_clicks:
-        try:
-            # Supprimer le contenu du fichier de sortie
-            with open('./sortie.json', 'w') as f:
-                f.write('')
-
-            Listposition.clear()  # Réinitialiser les données des positions
-            
-            # Rafraîchir la page en mettant à jour l'URL
-            return dcc.Location(pathname='/gestion', id='dummy-location')
-        except Exception as e:
-            return str(e)
-# Définir la mise en page de l'accueil
-def accueil_layout():
-    return html.Div(children=[
-        navbar_layout(),
-        html.Div(children=[
-            html.H1(children='Mon Application Dash', className='mt-3'),
-            html.Div(children='''
-                Bienvenue sur ma première application Dash !
-            ''', className='description'), 
-            html.Div(id='output-container-button', className='mt-3')
-        ], className='content')
-    ])
-
-# Définir la barre de navigation commune
-def navbar_layout():
-    return html.Nav(className='navbar navbar-expand-lg navbar-light bg-light', children=[
-            html.A('Accueil', href='/accueil', className='navbar-brand'),
-            html.A('Gestion de Portefeuille', href='/gestion', className='navbar-brand'),
-        ], style={'marginBottom': 0, 'marginTop': 0, 'paddingBottom': 0, 'paddingTop': 0})
-
-
-@app.callback(
-    Output('date-value', 'children'),
-    [Input('single-date-picker', 'date')]   
-)
-def update_date_value(date):
-    global DATE
-    global OPTIONNUMBER
-    if date:
-        date_object = datetime.strptime(date, date_format)
-        DATE = date_object
-        return DATE
-
-
-@app.callback(
-    Output('single-date-picker', 'date'),
-    [Input('option-dropdown', 'value'),
-     Input('increment-date-button', 'n_clicks'),
-     Input('increment-week-button', 'n_clicks'),
-     Input('increment-month-button', 'n_clicks'),
-     Input('increment-year-button', 'n_clicks'),
-     Input('reset-button', 'n_clicks')]
-)
-def update_default_date(option_number, n_clicks, n_clicks_week, n_clicks_month, n_clicks_year, n_clicks_output):
-    global DATE
-    ctx = dash.callback_context
-
-    if not ctx.triggered:
-        button_id = None
-    else:
-        button_id = ctx.triggered[0]['prop_id'].split('.')[0]
-
-    if button_id == 'increment-date-button':
-        print("jour")
-        DATE += timedelta(days=1)
-        return DATE.strftime(date_format)
-    elif button_id == 'increment-week-button':
-
-        DATE += timedelta(weeks=1)
-    
-        return DATE.strftime(date_format)
-    elif button_id == 'increment-month-button':
-        print("mois")
-
-        DATE += timedelta(days=30)
-        return DATE.strftime(date_format)
-    elif button_id == 'increment-year-button':
-        DATE += timedelta(days=365)
-        return DATE.strftime(date_format)
-    elif button_id == 'reset-button':
-        DATE = datetime(2000, 7, 5)
-        return DATE.strftime(date_format)
-    elif option_number == 1:
-        return datetime.strptime(dataf._first_option_dates[0], '%d-%m-%Y')
-    elif option_number == 2:
-        return datetime.strptime(dataf._second_option_dates[0], '%d-%m-%Y')
-    elif option_number == 3:
-        return datetime.strptime(dataf._third_option_dates[0], '%d-%m-%Y')
-        
 
 # Définir la mise en page de l'application
 app.layout = html.Div([
