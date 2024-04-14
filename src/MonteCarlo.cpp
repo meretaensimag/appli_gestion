@@ -19,15 +19,21 @@ void MonteCarlo::priceAndDelta(PnlMat *pastData, int currentEvalDate, double &co
     deltaVariances = pnl_vect_create_from_zero(nbAssets_);
     double totalPayoff = 0.0;
     double totalPayoffSquared = 0.0;
-    PnlMat *simulatedPath = pnl_mat_create(model_->timeGrid_->nbTimeSteps_, nbAssets_);
+    PnlMat *simulatedPath = pnl_mat_create_from_scalar(model_->timeGrid_->nbTimeSteps_, nbAssets_, 0.0);
     double singleDelta = 0;
     double assetPayoff = 0;
     double assetPayoffUp = 0;
     double assetPayoffDown = 0;
     //boucle sur les simulations
+
+    //pnl_mat_print(simulatedPath);
     for (int sampleIndex = 0; sampleIndex < nbSamples_; sampleIndex++) {
+        //pnl_mat_print(simulatedPath);
         model_ -> sample(pastData, simulatedPath, currentEvalDate, rng_);
         assetPayoff = option_->payoff(currentEvalDate, simulatedPath);
+        //std::cout << "Le simulatedPath est --------------------------------" << currentEvalDate << std::endl;
+        //std::cout << simulatedPath  << std::endl;
+        //std::cout << "--------------------------------------------------------" << currentEvalDate << std::endl;
         totalPayoff += assetPayoff;
         totalPayoffSquared += assetPayoff * assetPayoff;
         //boucle sur les actifs
@@ -49,15 +55,19 @@ void MonteCarlo::priceAndDelta(PnlMat *pastData, int currentEvalDate, double &co
     //double maturityInYears = option_->maturity_ / (double) numberOfDaysInOneYear;
     int numberOfDaysInOneYear = 365;
     double maturityInYears = model_->timeGrid_->maturity_ / (double) numberOfDaysInOneYear;
-   
+
     double domesticInterestRate = option_->domesticInterestRate_;
     double currentEvalDateInYears = currentEvalDate/(double) numberOfDaysInOneYear;
     double discountFactor = exp(-domesticInterestRate * (maturityInYears - currentEvalDateInYears));
+    //std::cout << "Le simulatedPath est --------------------------------" <<  model_->timeGrid_->maturity_ << std::endl;
+    //std::cout << "Le simulatedPath est --------------------cout------------" << currentEvalDate << std::endl;
     totalPayoff /= nbSamples_;
+    //std::cout << "Le simulatedPath est --------------------------------" << totalPayoff << std::endl;
+
     //computedPrice = discountFactor * totalPayoff;
     computedPrice = discountFactor * totalPayoff;
     priceVariance = std::sqrt(std::abs(totalPayoffSquared / nbSamples_ - computedPrice * computedPrice) / nbSamples_);
-    computedPrice = discountFactor * computedPrice;
+    //computedPricee = discountFactor * computedPrice;
     //priceVariance = discountFactor  * priceVariance;
     //priceVariance = exp(-2*domesticInterestRate* (maturityInYears - currentEvalDateInYears)) * (totalPayoffSquared - computedPrice * computedPrice);
     //calcul du delta de l'option

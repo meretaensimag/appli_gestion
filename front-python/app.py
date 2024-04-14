@@ -17,7 +17,7 @@ external_stylesheets = ['https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/
 date_format = '%Y-%m-%dT%H:%M:%S'
 Listposition = []
 OPTIONNUMBER = 1
-DATE = datetime(2000, 7, 6)
+DATE = datetime(2000, 7, 5)
 
 # Créer l'application Dash
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
@@ -92,7 +92,7 @@ def gestion_accueil_layout():
 
             html.Button('Réinitialiser', id='reset-button', className='btn btn-primary mt-3', n_clicks=0),
             html.Button('Prévisualisation', id='preview-button', className='btn btn-secondary mt-3', n_clicks=0),
-            html.Button('Afficher Nouvelles Courbes', id='afficher-nouvelles-courbes-button', className='btn btn-primary mt-3'),
+            html.Button('Afficher Courbes Actifs', id='afficher-nouvelles-courbes-button', className='btn btn-primary mt-3'),
             html.Button('Incrémenter la date d\'un jour', id='increment-date-button', className='btn btn-primary mt-3', n_clicks=0),
             html.Button('Incrémenter la date d\'une semaine', id='increment-week-button', className='btn btn-primary mt-3'),
             html.Button('Incrémenter la date d\'un mois', id='increment-month-button', className='btn btn-primary mt-3'),
@@ -131,7 +131,7 @@ def gestion_accueil_layout():
         # Popup pour afficher les nouvelles courbes
         dbc.Modal(
             [
-                dbc.ModalHeader("Nouvelles Courbes"),
+                dbc.ModalHeader("Courbes actifs"),
                 dbc.ModalBody(html.Div(id='additional-graph-container')),
             
             ],
@@ -257,7 +257,7 @@ def display_table(n_clicks):
                 previous_rep = Listposition[len_previousrep-1]
 
             print(stringdate)
-            currentpos = dp.paye_dividende_et_rebalance(stringdate,OPTIONNUMBER,previous_rep)
+            currentpos = dp.pay_dividend_and_rebalance(stringdate,OPTIONNUMBER,previous_rep)
             Listposition.append(currentpos)
             print(currentpos)
                 # Charger les données à partir de sortie.json

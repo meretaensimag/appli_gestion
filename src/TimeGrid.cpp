@@ -21,15 +21,36 @@ TimeGrid::TimeGrid(nlohmann::json &jsonParams){
 //    if (label2 == "Grid") {
 //        rebalancingDates_ = jsonParams.at("PortfolioRebalancingOracleDescription").at("DatesInDays").get<std::vector<int>>();
 //    }
-    
+
     nbTimeSteps_ = dateList_.size();
 }
 
 bool TimeGrid::isMonitoringDate(int date) {
-    for (int elem : dateList_) {
+    for (int elem: dateList_) {
         if (elem == date) {
             return true;
         }
     }
     return false;
+}
+
+int TimeGrid::getIndex(int t) {
+    if (isMonitoringDate(t)) {
+        for (int i = 0; i < dateList_.size(); i++) {
+            if (dateList_[i] == t) {
+                return i;
+            }
+        }
+    }
+    return dateList_[dateList_.size() - 1];
+}
+
+
+int TimeGrid::getNextMonitoringDateIndex(int t) {
+    for (int i = 0; i < dateList_.size(); i++) {
+        if (dateList_[i] > t) {
+            return i;
+        }
+    }
+    return dateList_[dateList_.size() - 1];
 }

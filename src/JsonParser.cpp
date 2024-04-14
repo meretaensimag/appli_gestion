@@ -1,4 +1,5 @@
 #include "JsonParser.hpp"
+#include <algorithm> // Pour std::min
 #include <iostream>
 #include <fstream>
 
@@ -9,37 +10,34 @@ JsonParser::JsonParser(const std::string& filePath) {
         throw std::runtime_error("Failed to open the JSON file.");
     }
     file >> j;
-    j.at("CovarianceMatrix").get_to(Correlation);
-    computeCorMatrix();
-
 }
 
 double JsonParser::parseDom(std::vector<Currency> currencies){
     return currencies[0].domesticInterestRate_;
 }
 
-void JsonParser::computeCorMatrix(){
-    PnlVect* vol = pnl_vect_create(Correlation->m);
-    for (int i=0; i < Correlation->m; i++){
-        pnl_vect_set(vol, i,sqrt(pnl_mat_get(Correlation,i,i)));
-    }
-        
+PnlMat * JsonParser::computeCorMatrix(PnlMat *Cov){
+    Correlation = pnl_mat_create_from_zero(Cov->m, Cov->n);
+    PnlVect* vol = pnl_vect_create(Cov->m);
+    for (int i=0; i < Cov->m; i++)
+        pnl_vect_set(vol, i, sqrt(MGET(Cov, i, i)*255)*(Correlation->m-1));
+    pnl_vect_print(vol);
 
+    pnl_mat_mult_scalar(Cov, (Correlation->m-1));
+    for (int i=0; i < Cov->m; i++){
+        for (int k=0; k < Cov->n; k++){
+            MLET(Correlation, i, k) = MGET(Cov, i, k)/(double)(sqrt(MGET(Cov, i, i)*MGET(Cov, k,k)));
+        }
+    }
+
+    pnl_mat_chol(Correlation);
     for (int i=0; i < Correlation->m; i++){
         for (int k=0; k < Correlation->n; k++){
 
-            pnl_mat_set(Correlation, i, k,pnl_mat_get(Correlation,i,k)/(pnl_vect_get(vol,i)*pnl_vect_get(vol,i)));
+            MLET(Correlation, i, k) = MGET(Correlation, i, k)*GET(vol, i);
         }
     }
-    pnl_mat_chol(Correlation);
-    
-
-    for (int l=0; l < Correlation->m; l++){
-        for (int z=0; z < Correlation->n; z++){
-            pnl_mat_set(Correlation, l, z,pnl_mat_get(Correlation,l,z)*pnl_vect_get(vol,l));
-        }
-    }    
-
+    return Correlation;
 }
 
 std::pair<std::vector<Currency>, std::vector<double>> JsonParser::parseCurrencies() {
@@ -65,17 +63,18 @@ std::pair<std::vector<Currency>, std::vector<double>> JsonParser::parseCurrencie
         else{
             double interestRate = item["InterestRate"];
             //double volatility = item["Volatility"];
-           
+
             PnlVect* Lrow= pnl_vect_create_from_zero(size);
             pnl_mat_get_row(Lrow, Correlation, compteur);
-    
+
             //pnl_vect_mult_scalar(Lrow, volatility);
-            
+
             double drift = dom;
             Currency* myCurrency = new Currency(drift,
-                                           Lrow,
-                                           interestRate,
-                                           dom);
+                                                Lrow,
+                                                interestRate,
+                                                dom);
+            //pnl_vect_print(Lrow);
             currencies.push_back(*myCurrency);
             foreignInterestRates.push_back(myCurrency->interestRate_);
             compteur ++;
@@ -120,7 +119,7 @@ std::pair<std::vector<Asset>, std::vector<int>> JsonParser::parseAssets(const st
                 //pnl_vect_mult_scalar(LrowS, volS);
                 if(ancien_id != currency_id){
                     c++;
-                    
+
                     pnl_vect_plus_vect(LrowS, currencies[c].volatilityVector_);
                 }
                 else{
@@ -134,24 +133,27 @@ std::pair<std::vector<Asset>, std::vector<int>> JsonParser::parseAssets(const st
                 ancien_id = currency_id;
             }
         }
-    //pnl_mat_free(&cor);
+        //pnl_mat_free(&cor);
     }
     return std::make_pair(assets, assetCurrencyMapping);
 }
 
 
 double JsonParser::parseReferentialAmount(){
-    return j["Option"]["ReferentialAmount"].get<double>();
+    double refAm = j["Option"]["ReferentialAmount"].get<double>();
+    return refAm;
 }
 
-double JsonParser::getCurrentEvalDate(){
-    return ((double)j.at("MathDate").get<int>()) / 252;
-}
 
-PnlMat *JsonParser::parsePast(PnlMat* marketData, TimeGrid *timeGrid, const std::vector<int>& assetCurrencyMapping, const std::vector<double>& foreignInterestRates){
+void JsonParser::parsePast(PnlMat* marketData, TimeGrid *timeGrid, const std::vector<int>& assetCurrencyMapping, const std::vector<double>& foreignInterestRates){
     int RowCount = marketData->m;
+
     //PnlMat* past = pnl_mat_create(marketData->m, columnCount);
+    //std::cout << "heloooooooooooooooooooooooooooooooo " << std::endl;
     PnlVect* dataLine= pnl_vect_create(RowCount);
+    //std::cout << "avant " << std::endl;
+
+    //pnl_mat_print(marketData);
     int n_bar = foreignInterestRates.size();
     for(int i=0; i<RowCount; i++) {
         pnl_mat_get_row(dataLine, marketData, i);
@@ -162,16 +164,22 @@ PnlMat *JsonParser::parsePast(PnlMat* marketData, TimeGrid *timeGrid, const std:
         for (int idx = 0; idx < n_bar; idx++) {
             int n_idx = (int) std::count(assetCurrencyMapping.begin(), assetCurrencyMapping.end(), idx + 1);
             for (int k = 0; k < n_idx; k++) {
+
+
+
                 pnl_mat_set(marketData, i, k + n0, GET(dataLine, k + n0) * GET(dataLine, idx + assetCurrencyMapping.size()));
+
             }
             n0 += n_idx;
         }
         for (int h = 0; h < n_bar; h++) {
             pnl_mat_set(marketData, i, h + (int) assetCurrencyMapping.size(),
-                        GET(dataLine, h + assetCurrencyMapping.size()) * exp(foreignInterestRates[h] * (i / (double)252)));
+                        GET(dataLine, h + assetCurrencyMapping.size()) * exp(foreignInterestRates[h] * (timeGrid->dateList_[i]-timeGrid->maturity_)/(double)360));
         }
     }
-    return marketData;
+    //std::cout << "dans jsonparser " << std::endl;
+
+    //pnl_mat_print(marketData);
 }
 
 JsonParser::~JsonParser(){

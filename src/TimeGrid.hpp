@@ -10,7 +10,8 @@ public:
     std::vector<int> rebalancingDates_;
 
     TimeGrid(nlohmann::json &jsonParams);
-    
+    int getIndex(int t);
+    int getNextMonitoringDateIndex(int t);
     bool isMonitoringDate(int time);
 
 };

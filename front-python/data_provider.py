@@ -20,9 +20,21 @@ def update_interest_rates(new_interest_rates, parametre_tester):
     parametre_tester[Currencies][2][InterestRate] = new_interest_rates[RJPY]
     parametre_tester[Currencies][3][InterestRate] = new_interest_rates[RINR]
 
-def update_covariance_matrix(int_date, parametre_tester, nb_days=520):
-    covar_math = log_daily_rentas.iloc[max(0, int_date - nb_days):int_date, :]
-    parametre_tester[CovarianceMatrix] = covar_math.cov().to_numpy().tolist()
+def update_covariance_matrix(date, parametre_tester, nb_days=520):
+    #covar_math = log_daily_rentas.iloc[0:250, :]
+    #parametre_tester[CovarianceMatrix] = covar_math.cov().to_numpy().tolist()
+    date = pd.to_datetime(date).strftime('%d-%m-%Y')
+    arithmetic_daily_rentas.ffill()
+    filtered_data = arithmetic_daily_rentas.loc[arithmetic_daily_rentas.index <= date]
+    window = min(len(filtered_data), 256)
+    filtered_data = filtered_data.tail(window)
+    daily_volatility = filtered_data.std()*np.sqrt(255)
+    correlation_matrix = filtered_data.corr()
+    L = np.linalg.cholesky(correlation_matrix)
+    volatilities = np.zeros_like(L)
+    for i in range(len(L)):
+        volatilities[i] = L[i]*daily_volatility.iloc[i]
+    parametre_tester[CovarianceMatrix] = volatilities.tolist()
 
 def spots_builder_for_past(int_date):
     spots = []
@@ -62,7 +74,7 @@ def conv_dates(option):
     const_dates = option[FixingDatesInDays][DatesInDays]
     option[FixingDatesInDays][DatesInDays] = [daily_dates_mapper(date) for date in const_dates]
 
-def provide_parametre_tester(int_date, option, is_rebalancing):
+def provide_parametre_tester(date, int_date, option, is_rebalancing):
     conv_dates(option)
     parametre_tester = get_test_parametres()
     parametre_tester[MathDate] = int_date
@@ -71,19 +83,19 @@ def provide_parametre_tester(int_date, option, is_rebalancing):
 
     update_past(int_date, parametre_tester)
     update_interest_rates(taux_interet.iloc[int_date].to_dict(), parametre_tester)
-    update_covariance_matrix(int_date, parametre_tester)
+    update_covariance_matrix(date, parametre_tester)
     remove_offset(parametre_tester)
     verify_parametre_tester(parametre_tester)
     return parametre_tester
 
-def provide_parametre_tester_from_saved_option(int_date, option_num,is_rebalancing): 
+def provide_parametre_tester_from_saved_option(date, int_date, option_num,is_rebalancing): 
     
-    return provide_parametre_tester(int_date, get_preload_option_description(option_num),is_rebalancing)
+    return provide_parametre_tester(date, int_date, get_preload_option_description(option_num),is_rebalancing)
 
-def generate_output_json(int_date, option_num,is_rebalancing):
+def generate_output_json(date, int_date, option_num,is_rebalancing):
     output_json_path = 'output.json'
 
-    parametre_tester = provide_parametre_tester_from_saved_option(int_date, option_num, is_rebalancing)
+    parametre_tester = provide_parametre_tester_from_saved_option(date, int_date, option_num, is_rebalancing)
 
 #     # Écriture du paramètre testeur dans le fichier JSON
     with open(output_json_path, 'w') as json_file:
@@ -195,7 +207,7 @@ def get_final_perf(option_number):
     de notre Produit Chorelia sur la periode spécifiée par option_number
     autrement pour une période, elle retourne le taux du dernier cashflow
     """
-    final_perf = 0
+    final_perf = 1
     all_option_dates = get_saved_option_dates(option_number)
     first_int_date = daily_dates_mapper(all_option_dates[0])
     spots_at_t0 = df_reord.iloc[first_int_date]
@@ -215,7 +227,7 @@ def get_quantite_cash_flow(date, option_number):
     if not is_dividend_date(date, option_number):
         return 0
     if date == get_saved_option_dates(option_number)[-1]:
-        cash_flow = DefaultReferentialAmount * (1 + 0.25*get_final_perf(option_number))
+        cash_flow = DefaultReferentialAmount * (1 + 0.25*(get_final_perf(option_number)-1))
 
         return cash_flow
     else:
@@ -234,7 +246,7 @@ def is_dividend_date(date, option_number):
 def initialisation(option_number,dico_info_position):
     if os.path.exists('sortie.json') and os.stat('sortie.json').st_size == 0:
         int_date = int(daily_dates_mapper(get_saved_option_dates(option_number)[0]))
-        pricing_params = generate_output_json(int_date, int(option_number),1)
+        pricing_params = generate_output_json(get_saved_option_dates(option_number)[0], int_date, int(option_number),1)
         command = ["./hedging_portfolio", "../../front-python/output.json", "../../front-python/sortie.json"]
         subprocess.run(command, cwd="../src/build")
         with open('sortie.json') as f:
@@ -245,13 +257,14 @@ def initialisation(option_number,dico_info_position):
             dico_info_position[assets_currency_except_reur[i]] = old_compos[i]
         dico_info_position["cash"] = DefaultReferentialAmount-np.dot(old_compos, [get_one_spot_price(int_date, asset_code)[EURO_PRICE] for asset_code in assets_currency_except_reur])
         dico_info_position["date"] = get_saved_option_dates(option_number)[0]
+        #dico_info_position["price"] = data[-1]['price']
         dico_info_position["price"] = data[-1]['price']
         dico_info_position["pnl"] = 0
 
         return True
     return False
 
-def paye_dividende_et_rebalance(spot_date, option_number,dico_precedent):
+def pay_dividend_and_rebalance(spot_date, option_number,dico_precedent):
     dico_info_position = {}
     int_date = daily_dates_mapper(spot_date)   
     if initialisation(option_number,dico_info_position):
@@ -261,7 +274,7 @@ def paye_dividende_et_rebalance(spot_date, option_number,dico_precedent):
     old_compos = data[-1]['deltas']
     ptf_value = get_valeur_portefeuille(old_compos, int_date,dico_precedent["cash"],daily_dates_mapper(dico_precedent["date"]))
     dividend_amount = get_quantite_cash_flow(spot_date, int(option_number))
-    pricing_params = generate_output_json(int_date, int(option_number),1)
+    pricing_params = generate_output_json(spot_date, int_date, int(option_number),1)
     pricing_params = str(pricing_params).replace("'", '\"')
     dico_info_position["portfolio_value"] = ptf_value
     dico_info_position["dividend"] = dividend_amount
@@ -284,10 +297,10 @@ def paye_dividende_et_rebalance(spot_date, option_number,dico_precedent):
     return dico_info_position
 
 if __name__ == "__main__":
-    # Exécuter la fonction paye_dividende_et_rebalance avec les arguments appropriés
+    # Exécuter la fonction pay_dividende_et_rebalance avec les arguments appropriés
     dico_precedent = {"cash": 1000, "date": "06-07-2000"}
-    result = paye_dividende_et_rebalance("06-07-2000", 1,dico_precedent)
+    result = pay_dividend_and_rebalance("06-07-2000", 1,dico_precedent)
 
     dico_precedent = result
-    result = paye_dividende_et_rebalance("08-07-2001", 1,dico_precedent)
+    result = pay_dividend_and_rebalance("08-07-2001", 1,dico_precedent)
     # Afficher le résultat

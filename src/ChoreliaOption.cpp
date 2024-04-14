@@ -29,21 +29,21 @@ double ChoreliaOption :: adjust_rate(double rate) {
 double ChoreliaOption :: calculate_average_rate(PnlVect *rates, const PnlMat *path, int index) {
 
     for (int j = 0; j < 5; ++j) {
-        double spot_at_0;
+        double spot_at_tmo;
         double spot_at_t;
         if(j==0||j==1){
-            spot_at_0 = pnl_mat_get(path, 0, j);
+            spot_at_tmo = pnl_mat_get(path, index-1, j);
             spot_at_t = pnl_mat_get(path, index, j);
         }
         else{
-//            spot_at_0 = pnl_mat_get(path, 0, j)*exp(foreignInterestRates_[j-2]*(timeGrid_->dateList_[0]-timeGrid_->maturity_)/(double)360)/(double)pnl_mat_get(path,0 , j+3);
-//            spot_at_t = pnl_mat_get(path, index, j)*exp(foreignInterestRates_[j-2]*(timeGrid_->dateList_[index]-timeGrid_->maturity_)/(double)360)/(double)pnl_mat_get(path,index , j+3);
-            spot_at_0 = pnl_mat_get(path, 0, j)/(double)pnl_mat_get(path,0 , j+3);
+//            spot_at_0 = pnl_mat_get(path, 0, j)*exp(foreignInterestRates_[j-2]*(timeGrid_->dateList_[0]-timeGrid_->maturity_)/(double)365)/(double)pnl_mat_get(path,0 , j+3);
+//            spot_at_t = pnl_mat_get(path, index, j)*exp(foreignInterestRates_[j-2]*(timeGrid_->dateList_[index]-timeGrid_->maturity_)/(double)365)/(double)pnl_mat_get(path,index , j+3);
+            spot_at_tmo = pnl_mat_get(path, index-1, j)/(double)pnl_mat_get(path,index-1 , j+3);
             spot_at_t = pnl_mat_get(path, index, j)/(double)pnl_mat_get(path,index , j+3);
-            spot_at_0*= exp(foreignInterestRates_[j-2]*(timeGrid_->dateList_[0]-timeGrid_->maturity_)/(double)360);
-            spot_at_t *= exp(foreignInterestRates_[j-2]*(timeGrid_->dateList_[index]-timeGrid_->maturity_)/(double)360);
+            spot_at_tmo*= exp(foreignInterestRates_[j-2]*(timeGrid_->dateList_[index-1]-timeGrid_->maturity_)/(double)365);
+            spot_at_t *= exp(foreignInterestRates_[j-2]*(timeGrid_->dateList_[index]-timeGrid_->maturity_)/(double)365);
         }
-        double rate = (spot_at_t - spot_at_0) / (double)spot_at_0;
+        double rate = (spot_at_t - spot_at_tmo) / (double)spot_at_tmo;
         pnl_vect_set(rates, j, rate);
     }
 
@@ -55,27 +55,30 @@ double ChoreliaOption :: calculate_average_rate(PnlVect *rates, const PnlMat *pa
 }
 
 double ChoreliaOption :: payoff(int currentDate, const PnlMat *path) {
+    //pnl_mat_print(path);
     double final_perf = 1.0; // Cumul de la performance annuelle
     double payoff = 0.;
     double dividend = 0.0;   // Dividende à payer
     PnlVect *rates = pnl_vect_create_from_zero(5);
-    for (int i = 1; i < path->m; i++) {
+    for (int i = 1; i < path->m-1; i++) {
         double basket_perf = calculate_average_rate(rates, path, i);
+
         final_perf *= (basket_perf+1);
 
-        if (i < (path->m - 1)) {
-
-            if(pnl_vect_get(rates,2) >= 0 && currentDate <= timeGrid_->dateList_[i]){
-                dividend = 25 * pnl_vect_get(rates,2); // La troisième meilleure performance
-            }
-            else{
-                dividend = 0.0;
-            }
+        if(pnl_vect_get(rates,2) >= 0 && currentDate <= timeGrid_->dateList_[i]){
+            dividend = 25 * pnl_vect_get(rates,2); // La troisième meilleure performance
+            //std::cout << " ana hnaaaaaaaaaaaaaaaaaa dividend " << dividend   << std::endl;
         }
         else{
-            dividend = referential_amount_*(1+0.25*(final_perf-1)); // 25% de la performance finale
+            dividend = 0.0;
         }
-        payoff += dividend * std::exp(domesticInterestRate_ *(timeGrid_->maturity_ -timeGrid_->dateList_[i])/(double)360);
+        //std::cout << " ana hnaaaaaaaaaaaaaaaaaa dividend " << dividend   << std::endl;
+        payoff += dividend * std::exp(domesticInterestRate_ *(timeGrid_->maturity_ - timeGrid_->dateList_[i])/(double)365);
+        rates = pnl_vect_create_from_zero(5);
     }
+    double basket_perf = calculate_average_rate(rates, path, path->m - 1);
+    final_perf *= (basket_perf+1);
+    payoff += referential_amount_*(1+0.25*(final_perf-1));
+    //std::cout << " ana hnaaaaaaaaaaaaaaaaaa referential_amount_ " << referential_amount_*(1+0.25*(final_perf-1))  << std::endl;
     return payoff;
 }

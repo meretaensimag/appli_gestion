@@ -25,9 +25,9 @@ EUROSTOXX50,	FTSE100,	MIB,	NIKKEI,	SENSEX = "EUROSTOXX50","FTSE100",	"MIB",	"NIK
 REUR, RGBP, RJPY, RINR = "REUR", "RGBP", "RJPY", "RINR"
 XGBP, XJPY, XINR = "XGBP", "XJPY", "XINR"
 
-DefaultNumberOfDaysInOneYear = 252
-DefaultNbSample = 1000
-DefaultFdSteps = 0.1
+DefaultNumberOfDaysInOneYear = 365
+DefaultNbSample = 5000
+DefaultFdSteps = 0.2
 
 DefaultReferentialAmount = 1000
 
